@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trump Treasure</title>
+  <style>
+    :root {
+      --bg: #0d1422;
+      --panel: #182237;
+      --panel2: #24314d;
+      --text: #f5f7fb;
+      --muted: #aab5ca;
+      --accent: #f3c969;
+      --good: #55d98b;
+      --bad: #ff6f6f;
+      --blue: #65aef2;
+      --purple: #b68cff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 18px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(101,174,242,.14), transparent 35%),
+        radial-gradient(circle at top right, rgba(182,140,255,.12), transparent 28%),
+        linear-gradient(160deg, #080d17, var(--bg));
+    }
+
+    .app { max-width: 1100px; margin: 0 auto; }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+    }
+
+    .subtitle { color: var(--muted); margin-bottom: 18px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: rgba(24,34,55,.95);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      background: var(--panel2);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .message {
+      min-height: 32px;
+      text-align: center;
+      color: var(--accent);
+      font-weight: 800;
+      margin: 6px 0 10px;
+    }
+
+    .cards {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      min-height: 260px;
+    }
+
+    .card-wrap { text-align: center; }
+
+    .label {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .card {
+      width: 150px;
+      height: 210px;
+      border-radius: 17px;
+      background: #fff;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px;
+      font-weight: 900;
+      box-shadow: 0 18px 38px rgba(0,0,0,.32);
+    }
+
+    .card.red { color: #d63031; }
+    .card.joker { color: #6c3fd6; }
+
+    .rank { font-size: 2.5rem; line-height: 1; }
+    .suit { font-size: 4rem; align-self: center; }
+    .bottom { align-self: flex-end; transform: rotate(180deg); font-size: 2rem; }
+
+    .card-back {
+      width: 150px;
+      height: 210px;
+      border-radius: 17px;
+      background: repeating-linear-gradient(45deg,#24416f,#24416f 12px,#172d51 12px,#172d51 24px);
+      border: 4px solid #dce7ff;
+      display: grid;
+      place-items: center;
+      font-size: 4rem;
+      box-shadow: 0 18px 38px rgba(0,0,0,.32);
+    }
+
+    .hazard-info {
+      margin: 14px auto 0;
+      max-width: 680px;
+      background: #111a2b;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 15px 12px;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    .continue { background: var(--good); color: #10251a; }
+    .fold { background: var(--accent); color: #302406; }
+    .next-game { background: var(--blue); color: #0d2234; width: 100%; margin-top: 12px; }
+    .restart { background: #f0f3f6; color: #1d2735; width: 100%; margin-top: 10px; }
+
+    .players { display: grid; gap: 10px; }
+
+    .player {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 5px 10px;
+      background: var(--panel2);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .player.inactive { opacity: .58; border: 1px dashed rgba(255,255,255,.25); }
+
+    .name { font-weight: 900; }
+    .score { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .sub {
+      grid-column: 1/-1;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .discard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .mini {
+      min-width: 40px;
+      text-align: center;
+      background: #fff;
+      color: #111;
+      padding: 5px 7px;
+      border-radius: 7px;
+      font-weight: 900;
+    }
+
+    .mini.red { color: #d63031; }
+    .mini.joker { color: #6c3fd6; }
+
+    .log {
+      max-height: 340px;
+      overflow-y: auto;
+      background: #0f1727;
+      border-radius: 12px;
+      padding: 12px;
+      line-height: 1.55;
+      font-size: .92rem;
+    }
+
+    .log p {
+      margin: 0 0 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    dialog {
+      border: 0;
+      border-radius: 18px;
+      padding: 0;
+      background: var(--panel);
+      color: var(--text);
+      width: min(92vw, 430px);
+      box-shadow: 0 25px 80px rgba(0,0,0,.5);
+    }
+
+    dialog::backdrop { background: rgba(0,0,0,.65); }
+
+    .dialog-body { padding: 20px; }
+    .dialog-body h3 { margin-top: 0; }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: #111a2b;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .confirm { background: var(--purple); color: #201237; width: 100%; }
+
+
+    .hazard-cards { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .hazard-chip { background:#3a2030; color:#ffd6df; border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:5px 8px; font-weight:800; }
+    .prob-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+    .prob-box { background:#111a2b; border-radius:12px; padding:10px; text-align:center; }
+    .prob-box strong { display:block; font-size:1.15rem; margin-top:3px; }
+    .settings { margin-top:14px; background:#111a2b; border-radius:12px; padding:12px; }
+    .settings-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .settings label { color:var(--muted); font-weight:700; }
+    .settings select { width:auto; min-width:150px; }
+    .draw-flash { animation: drawFlash .55s ease; }
+    .hazard-flash { animation: hazardShake .6s ease; }
+    @keyframes drawFlash { 0%{transform:scale(.75) rotate(-6deg);opacity:.15} 70%{transform:scale(1.05) rotate(2deg);opacity:1} 100%{transform:scale(1) rotate(0)} }
+    @keyframes hazardShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-7px)} 80%{transform:translateX(7px)} }
+    .sound-btn { background:#dfe7ff; color:#17233a; width:100%; margin-top:10px; }
+
+    @media (max-width: 780px) {
+      .grid { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr; }
+      .card, .card-back { width: 130px; height: 182px; }
+    }
+  
+    .share-textarea {
+      width: 100%;
+      min-height: 240px;
+      resize: vertical;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: #0f1727;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: .8rem;
+      line-height: 1.5;
+    }
+
+    .share-status {
+      min-height: 26px;
+      margin: 10px 0;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .share-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .share-actions { grid-template-columns: 1fr; }
+    }
+
+  
+    .game-settings {
+      margin: 18px 0;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .setting-label {
+      min-width: 92px;
+      font-weight: 800;
+    }
+    .setting-btn {
+      width: auto;
+      min-width: 48px;
+      padding: 8px 11px;
+      border-radius: 9px;
+      background: #263654;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.16);
+      cursor: pointer;
+    }
+    .setting-btn.selected {
+      background: #f2c94c;
+      color: #172033;
+      border-color: #f2c94c;
+      box-shadow: 0 0 0 2px rgba(242,201,76,.2);
+    }
+    .settings-note {
+      margin: 8px 0 0;
+      opacity: .78;
+      font-size: .9rem;
+    }
+
+
+#winnerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9999}
+#winnerOverlay.show{display:flex}
+#winnerOverlay h1{font-size:56px;color:#ffd54a;margin:0 0 12px;text-align:center}
+#winnerOverlay #fireworksCanvas{display:block}#confettiContainer span{position:absolute;font-size:22px;animation:fall 3s linear forwards}@keyframes fall{from{transform:translateY(-10vh) rotate(0)}to{transform:translateY(110vh) rotate(720deg)}}
+to{transform:scale(1.15)}}
+
+
+    .live-scoreboard{
+      margin:14px 0 10px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      text-align:center;
+    }
+    .live-score-item{
+      padding:10px 8px;
+      border-radius:10px;
+      background:rgba(0,0,0,.18);
+    }
+    .live-score-label{
+      font-size:.82rem;
+      opacity:.78;
+      margin-bottom:4px;
+    }
+    .live-score-value{
+      font-size:1.15rem;
+      font-weight:900;
+    }
+    @media (max-width:620px){
+      .live-scoreboard{grid-template-columns:1fr;}
+    }
+
+
+#dobonOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at center, rgba(255,65,65,.35), rgba(60,0,0,.92) 68%);
+}
+#dobonOverlay.show{
+  display:flex;
+  animation:dobonScreenShake .58s ease-in-out 2;
+}
+#dobonText{
+  font-size:clamp(72px,18vw,220px);
+  line-height:1;
+  font-weight:1000;
+  letter-spacing:.04em;
+  color:#fff;
+  -webkit-text-stroke:clamp(2px,.6vw,8px) #b00000;
+  text-shadow:
+    0 0 12px #fff,
+    0 0 30px #ff2020,
+    0 0 70px #ff0000,
+    10px 12px 0 rgba(0,0,0,.45);
+  transform:scale(.1) rotate(-8deg);
+}
+#dobonOverlay.show #dobonText{
+  animation:dobonBurst 1.7s cubic-bezier(.12,.75,.18,1) forwards;
+}
+#dobonOverlay::before,
+#dobonOverlay::after{
+  content:"";
+  position:absolute;
+  width:180vmax;
+  height:18px;
+  background:rgba(255,255,255,.75);
+  box-shadow:
+    0 -45px 0 rgba(255,40,40,.8),
+    0 45px 0 rgba(255,220,0,.65);
+}
+#dobonOverlay::before{transform:rotate(28deg)}
+#dobonOverlay::after{transform:rotate(-28deg)}
+@keyframes dobonBurst{
+  0%{transform:scale(.08) rotate(-15deg);opacity:0}
+  28%{transform:scale(1.28) rotate(4deg);opacity:1}
+  48%{transform:scale(.94) rotate(-2deg)}
+  68%{transform:scale(1.08) rotate(1deg)}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes dobonScreenShake{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-14px,8px)}
+  40%{transform:translate(12px,-9px)}
+  60%{transform:translate(-9px,-5px)}
+  80%{transform:translate(10px,7px)}
+}
+
+
+#gameSetOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9500;pointer-events:none;background:rgba(0,0,0,.18)}
+#gameSetOverlay.show{display:flex;animation:gameSetFade 1.65s ease forwards}
+#gameSetText{padding:.28em .62em;border:2px solid rgba(255,255,255,.75);border-radius:18px;background:rgba(12,20,35,.78);color:#fff;font-size:clamp(44px,10vw,110px);font-weight:900;letter-spacing:.07em;text-shadow:0 3px 14px rgba(0,0,0,.55);transform:scale(.86);opacity:0}
+#gameSetOverlay.show #gameSetText{animation:gameSetTextIn 1.55s ease forwards}
+@keyframes gameSetFade{0%{opacity:0}15%,72%{opacity:1}100%{opacity:0}}
+@keyframes gameSetTextIn{0%{opacity:0;transform:scale(.86) translateY(12px)}22%{opacity:1;transform:scale(1) translateY(0)}76%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(.98) translateY(-6px)}}
+
+
+#fieldOutOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9600;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at center, rgba(65,120,255,.28), rgba(5,12,35,.88) 72%);
+}
+#fieldOutOverlay.show{
+  display:flex;
+  animation:fieldOutScreen 2.15s ease forwards;
+}
+#fieldOutText{
+  position:relative;
+  z-index:2;
+  padding:.22em .5em;
+  border:3px solid rgba(255,255,255,.9);
+  border-radius:22px;
+  background:rgba(10,22,48,.78);
+  color:#fff;
+  font-size:clamp(58px,13vw,150px);
+  font-weight:1000;
+  letter-spacing:.06em;
+  text-shadow:
+    0 0 14px rgba(255,255,255,.9),
+    0 0 36px rgba(70,140,255,.95),
+    0 8px 18px rgba(0,0,0,.5);
+  opacity:0;
+  transform:scale(.35) rotate(-7deg);
+}
+#fieldOutOverlay.show #fieldOutText{
+  animation:fieldOutBurst 1.95s cubic-bezier(.12,.78,.18,1) forwards;
+}
+#fieldOutOverlay::before,
+#fieldOutOverlay::after{
+  content:"";
+  position:absolute;
+  width:150vmax;
+  height:12px;
+  background:rgba(255,255,255,.8);
+  box-shadow:
+    0 -52px 0 rgba(70,140,255,.8),
+    0 52px 0 rgba(120,210,255,.65);
+  opacity:0;
+}
+#fieldOutOverlay.show::before{
+  transform:rotate(24deg);
+  animation:fieldOutLines 1.5s ease-out forwards;
+}
+#fieldOutOverlay.show::after{
+  transform:rotate(-24deg);
+  animation:fieldOutLines 1.5s .08s ease-out forwards;
+}
+@keyframes fieldOutScreen{
+  0%{opacity:0}
+  12%,76%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes fieldOutBurst{
+  0%{opacity:0;transform:scale(.35) rotate(-7deg)}
+  26%{opacity:1;transform:scale(1.22) rotate(3deg)}
+  46%{transform:scale(.94) rotate(-1deg)}
+  68%{transform:scale(1.04) rotate(0)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes fieldOutLines{
+  0%{opacity:0;scale:.25}
+  35%{opacity:1}
+  100%{opacity:0;scale:1.25}
+}
+
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>Trump Treasure</h1>
+  <div class="subtitle">ドボンカードを避けながら、降りるタイミングを見極めるカードゲーム</div>
+
+  <section class="game-settings" aria-label="ゲーム設定">
+    <div class="setting-row">
+      <span class="setting-label">CPU人数</span>
+      <div id="cpuCountButtons">
+        <button class="setting-btn selected" data-cpu-count="3">3</button>
+        <button class="setting-btn" data-cpu-count="4">4</button>
+        <button class="setting-btn" data-cpu-count="5">5</button>
+        <button class="setting-btn" data-cpu-count="6">6</button>
+        <button class="setting-btn" data-cpu-count="7">7</button>
+        <button class="setting-btn" data-cpu-count="8">8</button>
+        <button class="setting-btn" data-cpu-count="9">9</button>
+        <button class="setting-btn" data-cpu-count="19">19</button>
+        <button class="setting-btn" data-cpu-count="49">49</button>
+        <button class="setting-btn" data-cpu-count="99">99</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">ゲーム数</span>
+      <div id="gameCountButtons">
+        <button class="setting-btn" data-game-count="3">3</button>
+        <button class="setting-btn" data-game-count="4">4</button>
+        <button class="setting-btn selected" data-game-count="5">5</button>
+        <button class="setting-btn" data-game-count="6">6</button>
+        <button class="setting-btn" data-game-count="7">7</button>
+        <button class="setting-btn" data-game-count="8">8</button>
+        <button class="setting-btn" data-game-count="9">9</button>
+        <button class="setting-btn" data-game-count="10">10</button>
+        <button class="setting-btn" data-game-count="11">11</button>
+        <button class="setting-btn" data-game-count="12">12</button>
+        <button class="setting-btn" data-game-count="15">15</button>
+        <button class="setting-btn" data-game-count="20">20</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">得点倍率</span>
+      <div id="scoreMultiplierButtons">
+        <button class="setting-btn" data-score-multiplier="100">×100</button>
+        <button class="setting-btn" data-score-multiplier="500">×500</button>
+        <button class="setting-btn selected" data-score-multiplier="1000">×1000</button>
+        <button class="setting-btn" data-score-multiplier="2000">×2000</button>
+        <button class="setting-btn" data-score-multiplier="5000">×5000</button>
+        <button class="setting-btn" data-score-multiplier="10000">×10000</button>
+      </div>
+    </div>
+    <p class="settings-note">設定を変更すると、確認後に選択したゲーム数で最初から開始します。</p>
+  </section>
+
+
+  <div class="grid">
+    <section class="panel">
+      <div class="status-row">
+        <div class="badge">ゲーム <span id="gameNo">1</span>/<span id="maxGamesDisplay">5</span></div>
+        <div class="badge">山札 <span id="deckCount">0</span>枚</div>
+        <div class="badge">参加者 <span id="activeCount">4</span>人</div>
+      </div>
+
+      <div class="message" id="message"></div>
+
+
+      <div class="live-scoreboard" aria-live="polite">
+        <div class="live-score-item">
+          <div class="live-score-label">あなたの順位</div>
+          <div id="humanRankDisplay" class="live-score-value">1位</div>
+        </div>
+        <div class="live-score-item">
+          <div class="live-score-label">あなたの現在得点</div>
+          <div id="humanScoreDisplay" class="live-score-value">0点</div>
+        </div>
+        <div class="live-score-item">
+          <div class="live-score-label">現在1位の得点</div>
+          <div id="leaderScoreDisplay" class="live-score-value">0点</div>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card-wrap">
+          <div class="label">親カード</div>
+          <div id="parentCard"></div>
+        </div>
+        <div class="card-wrap">
+          <div class="label">今回のカード</div>
+          <div id="drawnCard" class="card-back">?</div>
+        </div>
+      </div>
+
+      <div class="hazard-info" id="hazardInfo"></div>
+      <div id="hazardCards" class="hazard-cards"></div>
+      <div class="prob-grid">
+        <div class="prob-box">山札の残り安全札<strong id="safeCount">0枚</strong></div>
+        <div class="prob-box">山札の残り危険札<strong id="dangerCount">0枚</strong></div>
+        <div class="prob-box">ドボンの確率<strong id="dangerRate">0%</strong></div>
+      </div>
+      <div class="settings">
+        <div class="settings-row">
+          <label for="cpuStyle">CPU性格</label>
+          <select id="cpuStyle">
+            <option value="cautious">慎重</option>
+            <option value="normal" selected>普通</option>
+            <option value="bold">強気</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="startGameBtn" class="continue">ゲーム開始</button>
+        <button id="continueBtn" class="continue" hidden>続ける</button>
+        <button id="foldBtn" class="fold" hidden>降りて得点確定</button>
+      </div>
+
+      <button id="drawNextBtn" class="next-game" hidden>次のカードを引く</button>
+      <button id="nextGameBtn" class="next-game" hidden>次のゲームへ</button>
+      <button id="restartBtn" class="restart">最初からやり直す</button>
+      <button id="rulesBtn" class="restart">ルール説明</button>
+      <button id="shareBtn" class="restart">ゲームのURLを共有</button>
+      <button id="soundBtn" class="sound-btn">効果音：ON</button>
+    </section>
+
+    <aside class="panel">
+      <h2>プレイヤー</h2>
+      <div id="players" class="players"></div>
+
+      <h2>全ゲームの捨て札（👑は親カード）</h2>
+      <div id="discard" class="discard"></div>
+
+      <h2>ログ</h2>
+      <div id="log" class="log"></div>
+    </aside>
+  </div>
+</main>
+
+<dialog id="jokerDialog">
+  <div class="dialog-body">
+    <h3>ジョーカーの数字とマークを申告</h3>
+    <p>申告したカードとして判定されます。ドボンカードに該当すると、そのゲームは終了します。</p>
+    <div class="fields">
+      <select id="jokerRank">
+        <option value="1">A</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">J</option>
+        <option value="12">Q</option>
+        <option value="13" selected>K</option>
+      </select>
+      <select id="jokerSuit">
+        <option value="♠">スペード</option>
+        <option value="♥">ハート</option>
+        <option value="♦">ダイヤ</option>
+        <option value="♣">クラブ</option>
+      </select>
+    </div>
+    <button class="confirm" id="jokerConfirm">このカードとして申告</button>
+  </div>
+</dialog>
+
+<script>
+const suits = [
+  {symbol:"♠", red:false},
+  {symbol:"♥", red:true},
+  {symbol:"♦", red:true},
+  {symbol:"♣", red:false}
+];
+
+const labels = {1:"A",11:"J",12:"Q",13:"K"};
+
+let deck = [];
+let discard = [];
+let parentCard = null;
+let lastDrawn = null;
+let gameNo = 1;
+let roundEnded = false;
+let wholeGameEnded = false;
+let pendingJoker = false;
+let waitingForNextDraw = false;
+let gameStarted = false;
+let soundEnabled = true;
+
+let cpuCount = 3;
+let scoreMultiplier = 1000;
+let maxGames = 5;
+let players = [];
+
+function buildPlayers(){
+  players = [
+    {name:"あなた", total:0, pending:0, active:true, human:true, choice:null}
+  ];
+  for(let i=1; i<=cpuCount; i++){
+    players.push({
+      name:`CPU ${i}`,
+      total:0,
+      pending:0,
+      active:true,
+      human:false,
+      choice:null
+    });
+  }
+}
+
+buildPlayers();
+
+const $ = id => document.getElementById(id);
+const els = {
+  gameNo:$("gameNo"),
+  maxGamesDisplay:$("maxGamesDisplay"),
+  humanRankDisplay:$("humanRankDisplay"),
+  humanScoreDisplay:$("humanScoreDisplay"),
+  leaderScoreDisplay:$("leaderScoreDisplay"),
+  deckCount:$("deckCount"),
+  activeCount:$("activeCount"),
+  message:$("message"),
+  parentCard:$("parentCard"),
+  drawnCard:$("drawnCard"),
+  hazardInfo:$("hazardInfo"),
+  hazardCards:$("hazardCards"),
+  safeCount:$("safeCount"),
+  dangerCount:$("dangerCount"),
+  dangerRate:$("dangerRate"),
+  cpuStyle:$("cpuStyle"),
+  startGameBtn:$("startGameBtn"),
+  soundBtn:$("soundBtn"),
+  players:$("players"),
+  discard:$("discard"),
+  log:$("log"),
+  continueBtn:$("continueBtn"),
+  foldBtn:$("foldBtn"),
+  drawNextBtn:$("drawNextBtn"),
+  nextGameBtn:$("nextGameBtn"),
+  restartBtn:$("restartBtn"),
+  jokerDialog:$("jokerDialog"),
+  jokerRank:$("jokerRank"),
+  jokerSuit:$("jokerSuit"),
+  jokerConfirm:$("jokerConfirm")
+};
+
+function createDeck(){
+  const cards = [];
+  for(const s of suits){
+    for(let rank=1; rank<=13; rank++){
+      cards.push({rank, suit:s.symbol, red:s.red, joker:false});
+    }
+  }
+  cards.push({joker:true});
+  cards.push({joker:true});
+  return shuffle(cards);
+}
+
+function shuffle(a){
+  const copy=[...a];
+  for(let i=copy.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+  }
+  return copy;
+}
+
+function rankText(rank){ return labels[rank] || String(rank); }
+
+function cardHTML(card){
+  if(card.joker){
+    return `<div class="card joker">
+      <div class="rank">JOKER</div>
+      <div class="suit">★</div>
+      <div class="bottom">JOKER</div>
+    </div>`;
+  }
+  return `<div class="card ${card.red?"red":""}">
+    <div class="rank">${rankText(card.rank)}${card.suit}</div>
+    <div class="suit">${card.suit}</div>
+    <div class="bottom">${rankText(card.rank)}${card.suit}</div>
+  </div>`;
+}
+
+function miniHTML(card){
+  if(card.joker) return `<div class="mini joker">JOKER</div>`;
+  return `<div class="mini ${card.red?"red":""}">${rankText(card.rank)}${card.suit}</div>`;
+}
+
+function formatScore(v){ return `${Math.trunc(v).toLocaleString("ja-JP")}点`; }
+function activePlayers(){ return players.filter(p=>p.active); }
+
+function addLog(text){
+  const p=document.createElement("p");
+  p.textContent=text;
+  els.log.prepend(p);
+}
+
+function hazardDescription(){
+  const dir = parentCard.rank <= 7 ? "以上" : "以下";
+  return `${parentCard.suit}の${rankText(parentCard.rank)}${dir}がドボンカードです。`;
+}
+
+function isHazard(card){
+  if(card.suit !== parentCard.suit) return false;
+  if(parentCard.rank <= 7) return card.rank >= parentCard.rank;
+  return card.rank <= parentCard.rank;
+}
+
+
+function remainingStats(){
+  // 表示は、すでに引かれて捨て札になったカードを含めず、
+  // 現在の山札に残っているカードだけを基準に計算する。
+  let safe=0;
+  let danger=0;
+
+  deck.forEach(card=>{
+    // ジョーカーは申告後に安全札・ドボンカードのどちらにもなり得るため、
+    // 確率計算の分母には含めるが、確定枚数には含めない。
+    if(card.joker) return;
+    if(isHazard(card)) danger++;
+    else safe++;
+  });
+
+  const total=deck.length;
+  return {safe,danger,total,rate:total ? danger/total : 0};
+}
+
+function hazardList(){
+  // 理論上の全ドボンカードではなく、山札に現在残っている
+  // ドボンカードだけを一覧表示する。
+  return deck
+    .filter(card=>!card.joker && isHazard(card))
+    .sort((a,b)=>a.rank-b.rank);
+}
+
+function beep(freq=440,duration=.08,type='sine'){
+  if(!soundEnabled) return;
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(.08,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+duration);
+  }catch(e){}
+}
+
+function render(){
+  els.gameNo.textContent=gameNo;
+  els.maxGamesDisplay.textContent=maxGames;
+
+  const liveRanking=[...players].sort((a,b)=>{
+    const diff=(b.total+b.pending)-(a.total+a.pending);
+    if(diff!==0) return diff;
+    return a.name.localeCompare(b.name,"ja",{numeric:true});
+  });
+  const human=players.find(p=>p.human);
+  const humanScore=human ? human.total+human.pending : 0;
+  const leaderScore=liveRanking.length ? liveRanking[0].total+liveRanking[0].pending : 0;
+  const humanIndex=liveRanking.findIndex(p=>p.human);
+  let humanRank=humanIndex+1;
+  if(humanIndex>0){
+    const previousScore=liveRanking[humanIndex-1].total+liveRanking[humanIndex-1].pending;
+    if(previousScore===humanScore){
+      for(let i=0;i<humanIndex;i++){
+        const s=liveRanking[i].total+liveRanking[i].pending;
+        if(s===humanScore){
+          humanRank=i+1;
+          break;
+        }
+      }
+    }
+  }
+  els.humanRankDisplay.textContent=`${humanRank}位`;
+  els.humanScoreDisplay.textContent=formatScore(humanScore);
+  els.leaderScoreDisplay.textContent=formatScore(leaderScore);
+
+  els.deckCount.textContent=deck.length;
+  els.activeCount.textContent=activePlayers().length;
+  els.parentCard.innerHTML=parentCard?cardHTML(parentCard):"";
+  els.hazardInfo.textContent=parentCard?hazardDescription():"";
+  els.hazardCards.innerHTML=parentCard?hazardList().map(c=>`<span class="hazard-chip">${rankText(c.rank)}${c.suit}</span>`).join(""):"";
+  const stats=parentCard?remainingStats():{safe:0,danger:0,total:0,rate:0};
+  els.safeCount.textContent=`${stats.safe}枚`;
+  els.dangerCount.textContent=`${stats.danger}枚`;
+  els.dangerRate.textContent=`${(stats.rate*100).toFixed(1)}%`;
+  els.discard.innerHTML=discard.map(miniHTML).join("");
+
+  const rankedPlayers = [...players].sort((a,b)=>{
+    const scoreDiff = (b.total + b.pending) - (a.total + a.pending);
+    if(scoreDiff !== 0) return scoreDiff;
+    return a.name.localeCompare(b.name, "ja", {numeric:true});
+  });
+
+  let previousScore = null;
+  let previousRank = 0;
+
+  els.players.innerHTML=rankedPlayers.map((p,index)=>{
+    const currentScore = p.total + p.pending;
+    const rank = currentScore === previousScore ? previousRank : index + 1;
+    previousScore = currentScore;
+    previousRank = rank;
+
+    return `
+    <div class="player ${p.active?"":"inactive"}">
+      <div class="name">${rank}位　${p.name}</div>
+      <div class="score">現在得点：${formatScore(currentScore)}</div>
+      <div class="sub">
+        確定：${formatScore(p.total)} ／
+        ${p.active
+          ? `未確定：${formatScore(p.pending)}${p.choice?` ／ 宣言：${p.choice==="continue"?"続ける":"降りる"}`:""}`
+          : `未確定：0 ／ このゲームは離脱済み`}
+      </div>
+    </div>
+  `;
+  }).join("");
+
+  const decisionHuman=players[0];
+  const decisionDisabled =
+    !gameStarted || roundEnded || wholeGameEnded || !decisionHuman.active || pendingJoker || waitingForNextDraw;
+
+  els.startGameBtn.hidden=gameStarted;
+  els.continueBtn.hidden=!gameStarted;
+  els.foldBtn.hidden=!gameStarted;
+  els.continueBtn.disabled=decisionDisabled;
+  els.foldBtn.disabled=decisionDisabled;
+
+  els.drawNextBtn.hidden =
+    !gameStarted || !waitingForNextDraw || roundEnded || wholeGameEnded;
+
+  els.nextGameBtn.hidden=!gameStarted || !roundEnded || wholeGameEnded;
+}
+
+function resetDrawnCard(){
+  els.drawnCard.className="card-back";
+  els.drawnCard.innerHTML="?";
+}
+
+function startRound(){
+  gameStarted=true;
+
+  // 山札は全ゲーム共通。新品の山札を作るのは最初の開始時だけ。
+  if(gameNo===1 && deck.length===0 && discard.length===0){
+    deck=createDeck();
+  }
+
+  roundEnded=false;
+  pendingJoker=false;
+  waitingForNextDraw=false;
+  lastDrawn=null;
+
+  players.forEach(p=>{
+    p.pending=0;
+    p.active=true;
+    p.choice=null;
+  });
+
+  if(deck.length===0){
+    endRound("山札のカードをすべて使い切りました。", true);
+    return;
+  }
+
+  parentCard=deck.pop();
+  if(parentCard.joker){
+    const randomSuit=suits[Math.floor(Math.random()*suits.length)];
+    parentCard={
+      rank:Math.floor(Math.random()*13)+1,
+      suit:randomSuit.symbol,
+      red:randomSuit.red,
+      joker:false,
+      declaredFromJoker:true
+    };
+    addLog(`親カードのジョーカーは${rankText(parentCard.rank)}${parentCard.suit}として決定。`);
+  }
+
+  discard.push({...parentCard, isParent:true});
+  resetDrawnCard();
+  els.message.textContent="まずカードを1枚引きます。";
+  addLog(`第${gameNo}ゲーム開始。親カードは${rankText(parentCard.rank)}${parentCard.suit}。`);
+  render();
+
+  if(deck.length===0){
+    endRound("親カードを含め、山札のカードをすべて使い切りました。", true);
+    return;
+  }
+
+  setTimeout(drawCard, 350);
+}
+
+function distributeSafeCard(card){
+  const active=activePlayers();
+  if(active.length===0){
+    endRound("全員が降りました。");
+    return;
+  }
+
+  const points=Math.floor((card.rank*scoreMultiplier)/active.length);
+  active.forEach(p=>p.pending+=points);
+  beep(760,.10,"sine");
+  addLog(`${rankText(card.rank)}${card.suit}は安全。参加者${active.length}人に${formatScore(points)}ずつ加算。`);
+  waitingForNextDraw=false;
+
+  // 最後の安全札を引いた場合は、その得点を含めて未確定得点を確定し終了。
+  if(deck.length===0){
+    activePlayers().forEach(p=>{
+      p.total+=p.pending;
+      addLog(`${p.name}の未確定得点${formatScore(p.pending)}を、山札終了により確定。`);
+      p.pending=0;
+      p.active=false;
+      p.choice=null;
+    });
+    endRound("山札のカードをすべて使い切ったため、ゲームを強制終了しました。", true);
+    return;
+  }
+
+  prepareCpuChoices();
+
+  if(players[0].active){
+    const cpuSummary = players
+      .filter(p => p.active && !p.human)
+      .map(p => `${p.name}：${p.choice === "continue" ? "続ける" : "降りる"}`)
+      .join("／");
+
+    els.message.textContent = cpuSummary
+      ? `CPUの選択：${cpuSummary}。あなたの判断を選んでください。`
+      : "続けるか、降りて得点を確定するか選んでください。";
+
+    render();
+  } else {
+    els.message.textContent="あなたは離脱済みです。CPUの探索を自動進行しています。";
+    render();
+    continueCpuOnlyTurn();
+  }
+}
+
+function drawCard(){
+  if(roundEnded) return;
+
+  if(deck.length===0){
+    activePlayers().forEach(p=>{
+      p.total+=p.pending;
+      p.pending=0;
+      p.active=false;
+      p.choice=null;
+    });
+    endRound("山札のカードをすべて使い切ったため、ゲームを強制終了しました。", true);
+    return;
+  }
+
+  const card=deck.pop();
+  lastDrawn=card;
+  els.drawnCard.className="draw-flash";
+  els.drawnCard.innerHTML=cardHTML(card);
+  beep(520,.08,"triangle");
+  discard.push(card);
+  render();
+
+  if(card.joker){
+    pendingJoker=true;
+    els.message.textContent="ジョーカーです。数字とマークを申告してください。";
+    render();
+    els.jokerDialog.showModal();
+    return;
+  }
+
+  resolveDrawnCard(card);
+}
+
+function resolveDrawnCard(card){
+  if(isHazard(card)){
+    showDobonAnimation();
+    els.drawnCard.classList.add("hazard-flash");
+    beep(140,.35,"sawtooth");
+    addLog(`${rankText(card.rank)}${card.suit}はドボンカード。探索中の全員が未確定ポイントを失いました。`);
+    activePlayers().forEach(p=>p.pending=0);
+    endRound(
+      deck.length===0
+        ? "最後のカードがドボンカードでした。山札を使い切ったためゲームを強制終了します。"
+        : "ドボンカードが出ました。",
+      deck.length===0
+    );
+    return;
+  }
+
+  distributeSafeCard(card);
+}
+
+function cpuChoice(player){
+  const activeCount=activePlayers().length;
+  const dangerCards=deck.filter(c=>{
+    if(c.joker) return false;
+    return isHazard(c);
+  }).length;
+  const risk=deck.length?dangerCards/deck.length:1;
+  const greed=Math.min(.35, player.pending/30000);
+  const gamePressure=gameNo>=9 ? .08 : 0;
+  const style=els.cpuStyle.value;
+  const styleAdjust = style==="cautious" ? .18 : style==="bold" ? -.16 : 0;
+  const foldChance=Math.max(.04, risk*1.4 + greed + gamePressure - .18 + styleAdjust);
+
+  return Math.random()<foldChance ? "fold" : "continue";
+}
+
+function continueCpuOnlyTurn(){
+  if(roundEnded || wholeGameEnded || pendingJoker || players[0].active) return;
+
+  const active = activePlayers();
+  if(active.length === 0){
+    endRound("全員が降りました。");
+    return;
+  }
+
+  els.message.textContent = "あなたは離脱済みです。CPUの探索を自動進行しています。";
+  render();
+
+  setTimeout(() => {
+    if(roundEnded || wholeGameEnded || players[0].active) return;
+
+    activePlayers().forEach(p => {
+      if(!p.human && !p.choice) p.choice = cpuChoice(p);
+    });
+
+    resolveChoices();
+  }, 700);
+}
+
+
+function prepareCpuChoices(){
+  if(roundEnded || wholeGameEnded || pendingJoker) return;
+
+  players
+    .filter(p => p.active && !p.human)
+    .forEach(p => {
+      p.choice = cpuChoice(p);
+    });
+}
+
+function humanChoice(choice){
+  if(roundEnded || wholeGameEnded || !players[0].active || pendingJoker || waitingForNextDraw) return;
+
+  players[0].choice=choice;
+
+  players
+    .filter(p => p.active && !p.human && !p.choice)
+    .forEach(p => {
+      p.choice = cpuChoice(p);
+    });
+
+  resolveChoices();
+}
+
+function resolveChoices(){
+  const folders=activePlayers().filter(p=>p.choice==="fold");
+  folders.forEach(p=>{
+    p.total+=p.pending;
+    addLog(`${p.name}が降り、${formatScore(p.pending)}を確定。`);
+    p.pending=0;
+    p.active=false;
+  });
+
+  activePlayers().forEach(p=>p.choice=null);
+
+  if(activePlayers().length===0){
+    endRound("全員が降りました。");
+    return;
+  }
+
+  if(!players[0].active){
+    waitingForNextDraw=false;
+    els.message.textContent="CPUが探索を続けます。";
+    render();
+
+    setTimeout(()=>{
+      if(roundEnded || wholeGameEnded) return;
+      resetDrawnCard();
+      render();
+      setTimeout(drawCard,300);
+    },700);
+  } else {
+    waitingForNextDraw=true;
+    els.message.textContent="選択が確定しました。「次のカードを引く」を押してください。";
+    render();
+  }
+}
+
+function endRound(reason, forceWholeGame=false){
+  waitingForNextDraw=false;
+  roundEnded=true;
+  els.message.textContent=reason;
+  addLog(`第${gameNo}ゲーム終了。${reason}`);
+  render();
+
+  const isFieldOut=reason.includes("全員が降りました");
+  const isDobon=reason.includes("ドボンカード");
+
+  if(isFieldOut){
+    showFieldOutAnimation();
+  }
+
+  // Game Set! は全ゲーム終了時だけ表示する。
+  if(forceWholeGame || gameNo>=maxGames){
+    const gameSetDelay=(isFieldOut || isDobon) ? 2300 : 0;
+    endWholeGame(forceWholeGame,gameSetDelay);
+  }
+}
+
+function endWholeGame(deckExhausted=false,gameSetDelay=0){
+  wholeGameEnded=true;
+  els.nextGameBtn.hidden=true;
+  const ranking=[...players].sort((a,b)=>b.total-a.total);
+  const winner=ranking[0];
+  const endLabel=deckExhausted
+    ? `全カード使用・第${gameNo}ゲームで終了`
+    : `${maxGames}ゲーム終了`;
+  els.message.textContent=`${endLabel}。1位は${winner.name}、${formatScore(winner.total)}です。`;
+  addLog(`最終結果：1位 ${winner.name}（${formatScore(winner.total)}）`);
+  render();
+
+  // 全てのゲームが終了した時にだけ Game Set! を表示する。
+  setTimeout(showGameSetAnimation,gameSetDelay);
+
+  if(winner.human){
+    setTimeout(()=>{
+      launchCelebration();
+      try{
+        const ctx=new (window.AudioContext||window.webkitAudioContext)();
+        [523,659,784,1046].forEach((f,i)=>{
+          const o=ctx.createOscillator(),g=ctx.createGain();
+          o.frequency.value=f;o.type="triangle";
+          g.gain.value=.08;
+          o.connect(g);g.connect(ctx.destination);
+          o.start(ctx.currentTime+i*.12);
+          o.stop(ctx.currentTime+i*.12+.25);
+        });
+      }catch(e){}
+    },gameSetDelay+1750);
+  }
+}
+
+function nextRound(){
+  if(!roundEnded || wholeGameEnded) return;
+
+  if(deck.length===0){
+    endWholeGame(true);
+    return;
+  }
+
+  gameNo++;
+  startRound();
+}
+
+function resetToStartScreen(){
+  gameNo=1;
+  wholeGameEnded=false;
+  roundEnded=false;
+  pendingJoker=false;
+  waitingForNextDraw=false;
+  gameStarted=false;
+  deck=[];
+  discard=[];
+  parentCard=null;
+  lastDrawn=null;
+
+  buildPlayers();
+  els.log.innerHTML="";
+  els.parentCard.className="card-back";
+  els.parentCard.innerHTML="?";
+  resetDrawnCard();
+  els.message.textContent="設定を確認して「ゲーム開始」を押してください。";
+  render();
+}
+
+function restartAll(){
+  resetToStartScreen();
+}
+
+function updateSettingButtons(){
+  document.querySelectorAll("[data-cpu-count]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.cpuCount) === cpuCount);
+  });
+  document.querySelectorAll("[data-score-multiplier]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.scoreMultiplier) === scoreMultiplier);
+  });
+  document.querySelectorAll("[data-game-count]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.gameCount) === maxGames);
+  });
+}
+
+function changeGameSetting(type, value){
+  const label =
+    type === "cpu"
+      ? `CPU人数を${value}人`
+      : type === "score"
+        ? `得点倍率を×${value}`
+        : `ゲーム数を${value}ゲーム`;
+  const ok = confirm(`${label}に変更し、ゲームを最初から始めますか？`);
+  if(!ok){
+    updateSettingButtons();
+    return;
+  }
+
+  if(type === "cpu"){
+    cpuCount = value;
+  }else if(type === "score"){
+    scoreMultiplier = value;
+  }else{
+    maxGames = value;
+  }
+  updateSettingButtons();
+  restartAll();
+}
+
+els.startGameBtn.addEventListener("click",()=>{
+  if(gameStarted) return;
+  startRound();
+});
+
+els.continueBtn.addEventListener("click",()=>humanChoice("continue"));
+els.foldBtn.addEventListener("click",()=>humanChoice("fold"));
+els.drawNextBtn.addEventListener("click",()=>{
+  if(!waitingForNextDraw || roundEnded || wholeGameEnded) return;
+  waitingForNextDraw=false;
+  resetDrawnCard();
+  els.message.textContent="次のカードを引きます。";
+  render();
+  setTimeout(drawCard,250);
+});
+
+els.nextGameBtn.addEventListener("click",nextRound);
+els.restartBtn.addEventListener("click",restartAll);
+
+document.querySelectorAll("[data-cpu-count]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.cpuCount);
+    if(value===cpuCount) return;
+    changeGameSetting("cpu",value);
+  });
+});
+
+document.querySelectorAll("[data-score-multiplier]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.scoreMultiplier);
+    if(value===scoreMultiplier) return;
+    changeGameSetting("score",value);
+  });
+});
+
+document.querySelectorAll("[data-game-count]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.gameCount);
+    if(value===maxGames) return;
+    changeGameSetting("game",value);
+  });
+});
+
+updateSettingButtons();
+
+
+els.jokerConfirm.addEventListener("click",()=>{
+  const rank=Number(els.jokerRank.value);
+  const suit=els.jokerSuit.value;
+  const suitInfo=suits.find(s=>s.symbol===suit);
+  const declared={rank,suit,red:suitInfo.red,joker:false,declaredFromJoker:true};
+
+  pendingJoker=false;
+  els.jokerDialog.close();
+  discard[discard.length-1]=declared;
+  els.drawnCard.innerHTML=cardHTML(declared);
+  addLog(`あなたはジョーカーを${rankText(rank)}${suit}として申告。`);
+  resolveDrawnCard(declared);
+});
+
+
+els.soundBtn.addEventListener("click",()=>{
+  soundEnabled=!soundEnabled;
+  els.soundBtn.textContent=`効果音：${soundEnabled?"ON":"OFF"}`;
+  if(soundEnabled) beep(660,.08,"sine");
+});
+
+document.getElementById("rulesBtn").addEventListener("click",()=>{
+  document.getElementById("rulesDialog").showModal();
+});
+document.getElementById("closeRulesBtn").addEventListener("click",()=>{
+  document.getElementById("rulesDialog").close();
+});
+
+
+function buildShareHtml(){
+  const clone = document.documentElement.cloneNode(true);
+
+  const shareDialog = clone.querySelector("#shareDialog");
+  if(shareDialog) shareDialog.removeAttribute("open");
+
+  const rulesDialog = clone.querySelector("#rulesDialog");
+  if(rulesDialog) rulesDialog.removeAttribute("open");
+
+  const textarea = clone.querySelector("#shareHtml");
+  if(textarea) textarea.textContent = "";
+
+  const status = clone.querySelector("#shareStatus");
+  if(status) status.textContent = "";
+
+  const title = clone.querySelector("title");
+  if(title) title.textContent = "Trump Treasure";
+
+  const heading = clone.querySelector("h1");
+  if(heading) heading.textContent = "Trump Treasure";
+
+  return "<!DOCTYPE html>\n" + clone.outerHTML;
+}
+
+async function copyShareHtml(){
+  const html = buildShareHtml();
+  const textarea = document.getElementById("shareHtml");
+  const status = document.getElementById("shareStatus");
+
+  textarea.value = html;
+
+  try {
+    await navigator.clipboard.writeText(html);
+    status.textContent = "HTMLをコピーしました。貼り付け先へそのまま貼り付けられます。";
+  } catch (error) {
+    textarea.focus();
+    textarea.select();
+
+    try {
+      const copied = document.execCommand("copy");
+      status.textContent = copied
+        ? "HTMLをコピーしました。"
+        : "自動コピーできませんでした。下のHTMLを長押ししてコピーしてください。";
+    } catch {
+      status.textContent = "自動コピーできませんでした。下のHTMLを長押ししてコピーしてください。";
+    }
+  }
+}
+
+document.getElementById("shareBtn").addEventListener("click", async ()=>{
+  const shareUrl=window.location.href;
+
+  try{
+    if(navigator.share){
+      await navigator.share({
+        title:"Trump Treasure",
+        text:"Trump Treasureをプレイ",
+        url:shareUrl
+      });
+    }else if(navigator.clipboard){
+      await navigator.clipboard.writeText(shareUrl);
+      els.message.textContent="ゲームのURLをコピーしました。";
+    }else{
+      window.prompt("このURLをコピーしてください。",shareUrl);
+    }
+  }catch(error){
+    if(error && error.name!=="AbortError"){
+      els.message.textContent="URLを共有できませんでした。";
+    }
+  }
+});
+
+document.getElementById("copyHtmlBtn").addEventListener("click", copyShareHtml);
+
+document.getElementById("closeShareBtn").addEventListener("click", ()=>{
+  document.getElementById("shareDialog").close();
+});
+
+resetToStartScreen();
+
+
+
+
+
+function showFieldOutAnimation(){
+  const overlay=document.getElementById("fieldOutOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+
+  try{
+    const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const now=audioCtx.currentTime;
+    [180,240,320].forEach((frequency,index)=>{
+      const oscillator=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      oscillator.type=index===2 ? "triangle" : "square";
+      oscillator.frequency.setValueAtTime(frequency,now+index*.08);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        frequency*1.45,
+        now+index*.08+.28
+      );
+      gain.gain.setValueAtTime(.07,now+index*.08);
+      gain.gain.exponentialRampToValueAtTime(.001,now+index*.08+.34);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start(now+index*.08);
+      oscillator.stop(now+index*.08+.36);
+    });
+  }catch(error){}
+
+  setTimeout(()=>overlay.classList.remove("show"),2200);
+}
+
+function showGameSetAnimation(){
+  const overlay=document.getElementById("gameSetOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+  setTimeout(()=>overlay.classList.remove("show"),1700);
+}
+
+function showDobonAnimation(){
+  const overlay=document.getElementById("dobonOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const now=ctx.currentTime;
+    [150,105,72].forEach((frequency,index)=>{
+      const oscillator=ctx.createOscillator();
+      const gain=ctx.createGain();
+      oscillator.type="sawtooth";
+      oscillator.frequency.setValueAtTime(frequency,now+index*.09);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        Math.max(35,frequency*.45),
+        now+index*.09+.42
+      );
+      gain.gain.setValueAtTime(.13,now+index*.09);
+      gain.gain.exponentialRampToValueAtTime(.001,now+index*.09+.46);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(now+index*.09);
+      oscillator.stop(now+index*.09+.48);
+    });
+  }catch(error){}
+
+  setTimeout(()=>overlay.classList.remove("show"),2100);
+}
+
+function launchCelebration(){
+  const ov=document.getElementById("winnerOverlay");
+  ov.classList.add("show");
+
+  const c=document.getElementById("fireworksCanvas");
+  const ctx=c.getContext("2d");
+  c.width=innerWidth;c.height=innerHeight;
+  let parts=[];
+  function boom(){
+    const x=Math.random()*c.width,y=Math.random()*c.height*0.6;
+    for(let i=0;i<80;i++){
+      const a=Math.random()*Math.PI*2,s=Math.random()*5+2;
+      parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:60});
+    }
+  }
+  boom();setTimeout(boom,600);setTimeout(boom,1200);
+  let f=0;
+  (function anim(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.03;p.life--;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,2,0,6.28);
+      ctx.fillStyle=`hsl(${p.life*6},100%,60%)`;
+      ctx.fill();
+    });
+    parts=parts.filter(p=>p.life>0);
+    if(f++<180) requestAnimationFrame(anim);
+  })();
+
+  const conf=document.getElementById("confettiContainer");
+  conf.innerHTML="";
+  const chars=["🎊","🎉"];
+  for(let i=0;i<120;i++){
+    const s=document.createElement("span");
+    s.textContent=chars[Math.floor(Math.random()*chars.length)];
+    s.style.left=Math.random()*100+"%";
+    s.style.animationDelay=(Math.random()*1.5)+"s";
+    conf.appendChild(s);
+  }
+  setTimeout(()=>{
+    ov.classList.remove("show");
+    conf.innerHTML="";
+    ctx.clearRect(0,0,c.width,c.height);
+  },5000);
+}
+
+</script>
+
+<dialog id="rulesDialog">
+  <div class="dialog-body">
+    <h3>ルール説明</h3>
+    <ul style="line-height:1.7">
+      <li>全12ゲーム行います。</li>
+      <li>最初に親カードを1枚引きます。</li>
+      <li>親カードが7以下なら「同じマークで親カード以上」がドボンカードです。</li>
+      <li>親カードが8以上なら「同じマークで親カード以下」がドボンカードです。</li>
+      <li>安全なカードなら「カードの数字×1000」を参加者全員で均等に分け、未確定ポイントになります。</li>
+      <li>各ターンで「続ける」か「降りる」を選びます。</li>
+      <li>降りると未確定ポイントが確定得点になります。</li>
+      <li>ドボンカードが出ると探索中のプレイヤーは未確定ポイントを失います。</li>
+      <li>全員が降りるかドボンカードが出ると、そのゲームは終了します。</li>
+      <li>ジョーカーは好きな数字・マークとして申告できます。</li>
+      <li>画面には残りの安全札・危険札・ドボンの確率が表示されます。</li>
+      <li>CPU性格は「慎重・普通・強気」から選べます。</li>
+    </ul>
+    <button id="closeRulesBtn" class="confirm">閉じる</button>
+  </div>
+</dialog>
+
+
+<dialog id="shareDialog">
+  <div class="dialog-body">
+    <h3>Trump Treasureを共有</h3>
+    <p>
+      下のHTMLをコピーして、HTMLを公開できるサービスやファイルへ貼り付けてください。
+      貼り付け先のブラウザタブには「Trump Treasure」と表示されます。
+    </p>
+    <div id="shareStatus" class="share-status"></div>
+    <textarea id="shareHtml" class="share-textarea" readonly></textarea>
+    <div class="share-actions">
+      <button id="copyHtmlBtn" class="confirm">HTMLをコピー</button>
+      <button id="closeShareBtn" class="restart">閉じる</button>
+    </div>
+  </div>
+</dialog>
+
+
+
+<div id="fieldOutOverlay" aria-live="assertive"><div id="fieldOutText">Field Out!</div></div>
+<div id="gameSetOverlay" aria-live="polite"><div id="gameSetText">Game Set!</div></div>
+<div id="dobonOverlay" aria-live="assertive">
+  <div id="dobonText">DoBooooN!!</div>
+</div>
+
+<div id="winnerOverlay">
+<canvas id="fireworksCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+<div id="confettiContainer" style="position:absolute;inset:0;overflow:hidden;pointer-events:none"></div>
+<h1>Congratulations!!</h1>
+</div>
+</body>
+</html>
