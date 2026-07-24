@@ -447,6 +447,90 @@ to{transform:scale(1.15)}}
   80%{transform:translate(10px,7px)}
 }
 
+
+#gameSetOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9500;pointer-events:none;background:rgba(0,0,0,.18)}
+#gameSetOverlay.show{display:flex;animation:gameSetFade 1.65s ease forwards}
+#gameSetText{padding:.28em .62em;border:2px solid rgba(255,255,255,.75);border-radius:18px;background:rgba(12,20,35,.78);color:#fff;font-size:clamp(44px,10vw,110px);font-weight:900;letter-spacing:.07em;text-shadow:0 3px 14px rgba(0,0,0,.55);transform:scale(.86);opacity:0}
+#gameSetOverlay.show #gameSetText{animation:gameSetTextIn 1.55s ease forwards}
+@keyframes gameSetFade{0%{opacity:0}15%,72%{opacity:1}100%{opacity:0}}
+@keyframes gameSetTextIn{0%{opacity:0;transform:scale(.86) translateY(12px)}22%{opacity:1;transform:scale(1) translateY(0)}76%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(.98) translateY(-6px)}}
+
+
+#fieldOutOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9600;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at center, rgba(65,120,255,.28), rgba(5,12,35,.88) 72%);
+}
+#fieldOutOverlay.show{
+  display:flex;
+  animation:fieldOutScreen 2.15s ease forwards;
+}
+#fieldOutText{
+  position:relative;
+  z-index:2;
+  padding:.22em .5em;
+  border:3px solid rgba(255,255,255,.9);
+  border-radius:22px;
+  background:rgba(10,22,48,.78);
+  color:#fff;
+  font-size:clamp(58px,13vw,150px);
+  font-weight:1000;
+  letter-spacing:.06em;
+  text-shadow:
+    0 0 14px rgba(255,255,255,.9),
+    0 0 36px rgba(70,140,255,.95),
+    0 8px 18px rgba(0,0,0,.5);
+  opacity:0;
+  transform:scale(.35) rotate(-7deg);
+}
+#fieldOutOverlay.show #fieldOutText{
+  animation:fieldOutBurst 1.95s cubic-bezier(.12,.78,.18,1) forwards;
+}
+#fieldOutOverlay::before,
+#fieldOutOverlay::after{
+  content:"";
+  position:absolute;
+  width:150vmax;
+  height:12px;
+  background:rgba(255,255,255,.8);
+  box-shadow:
+    0 -52px 0 rgba(70,140,255,.8),
+    0 52px 0 rgba(120,210,255,.65);
+  opacity:0;
+}
+#fieldOutOverlay.show::before{
+  transform:rotate(24deg);
+  animation:fieldOutLines 1.5s ease-out forwards;
+}
+#fieldOutOverlay.show::after{
+  transform:rotate(-24deg);
+  animation:fieldOutLines 1.5s .08s ease-out forwards;
+}
+@keyframes fieldOutScreen{
+  0%{opacity:0}
+  12%,76%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes fieldOutBurst{
+  0%{opacity:0;transform:scale(.35) rotate(-7deg)}
+  26%{opacity:1;transform:scale(1.22) rotate(3deg)}
+  46%{transform:scale(.94) rotate(-1deg)}
+  68%{transform:scale(1.04) rotate(0)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes fieldOutLines{
+  0%{opacity:0;scale:.25}
+  35%{opacity:1}
+  100%{opacity:0;scale:1.25}
+}
+
 </style>
 </head>
 <body>
@@ -567,7 +651,7 @@ to{transform:scale(1.15)}}
       <button id="nextGameBtn" class="next-game" hidden>次のゲームへ</button>
       <button id="restartBtn" class="restart">最初からやり直す</button>
       <button id="rulesBtn" class="restart">ルール説明</button>
-      <button id="shareBtn" class="restart">ゲームのHTMLを共有</button>
+      <button id="shareBtn" class="restart">ゲームのURLを共有</button>
       <button id="soundBtn" class="sound-btn">効果音：ON</button>
     </section>
 
@@ -1142,6 +1226,21 @@ function endRound(reason, forceWholeGame=false){
   addLog(`第${gameNo}ゲーム終了。${reason}`);
   render();
 
+  const isFieldOut=reason.includes("全員が降りました");
+  const isDobon=reason.includes("ドボンカード");
+  const isDeckEnd=
+    reason.includes("山札") ||
+    reason.includes("全カード") ||
+    forceWholeGame;
+
+  if(isFieldOut){
+    showFieldOutAnimation();
+  }else if(isDeckEnd){
+    // 山札を使い切ってゲーム全体が終了した時のみ
+    showGameSetAnimation();
+  }
+  // 通常の1ゲーム終了では Game Set! を表示しない
+
   if(forceWholeGame || gameNo>=maxGames){
     endWholeGame(forceWholeGame);
   }
@@ -1373,15 +1472,26 @@ async function copyShareHtml(){
 }
 
 document.getElementById("shareBtn").addEventListener("click", async ()=>{
-  const dialog = document.getElementById("shareDialog");
-  const textarea = document.getElementById("shareHtml");
-  const status = document.getElementById("shareStatus");
+  const shareUrl=window.location.href;
 
-  textarea.value = buildShareHtml();
-  status.textContent = "";
-  dialog.showModal();
-
-  await copyShareHtml();
+  try{
+    if(navigator.share){
+      await navigator.share({
+        title:"Trump Treasure",
+        text:"Trump Treasureをプレイ",
+        url:shareUrl
+      });
+    }else if(navigator.clipboard){
+      await navigator.clipboard.writeText(shareUrl);
+      els.message.textContent="ゲームのURLをコピーしました。";
+    }else{
+      window.prompt("このURLをコピーしてください。",shareUrl);
+    }
+  }catch(error){
+    if(error && error.name!=="AbortError"){
+      els.message.textContent="URLを共有できませんでした。";
+    }
+  }
 });
 
 document.getElementById("copyHtmlBtn").addEventListener("click", copyShareHtml);
@@ -1393,6 +1503,48 @@ document.getElementById("closeShareBtn").addEventListener("click", ()=>{
 resetToStartScreen();
 
 
+
+
+
+function showFieldOutAnimation(){
+  const overlay=document.getElementById("fieldOutOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+
+  try{
+    const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const now=audioCtx.currentTime;
+    [180,240,320].forEach((frequency,index)=>{
+      const oscillator=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      oscillator.type=index===2 ? "triangle" : "square";
+      oscillator.frequency.setValueAtTime(frequency,now+index*.08);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        frequency*1.45,
+        now+index*.08+.28
+      );
+      gain.gain.setValueAtTime(.07,now+index*.08);
+      gain.gain.exponentialRampToValueAtTime(.001,now+index*.08+.34);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start(now+index*.08);
+      oscillator.stop(now+index*.08+.36);
+    });
+  }catch(error){}
+
+  setTimeout(()=>overlay.classList.remove("show"),2200);
+}
+
+function showGameSetAnimation(){
+  const overlay=document.getElementById("gameSetOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+  setTimeout(()=>overlay.classList.remove("show"),1700);
+}
 
 function showDobonAnimation(){
   const overlay=document.getElementById("dobonOverlay");
@@ -1514,6 +1666,8 @@ function launchCelebration(){
 
 
 
+<div id="fieldOutOverlay" aria-live="assertive"><div id="fieldOutText">Field Out!</div></div>
+<div id="gameSetOverlay" aria-live="polite"><div id="gameSetText">Game Set!</div></div>
 <div id="dobonOverlay" aria-live="assertive">
   <div id="dobonText">DoBooooN!!</div>
 </div>
@@ -1525,4 +1679,3 @@ function launchCelebration(){
 </div>
 </body>
 </html>
-
