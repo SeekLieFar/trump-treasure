@@ -1228,25 +1228,19 @@ function endRound(reason, forceWholeGame=false){
 
   const isFieldOut=reason.includes("全員が降りました");
   const isDobon=reason.includes("ドボンカード");
-  const isDeckEnd=
-    reason.includes("山札") ||
-    reason.includes("全カード") ||
-    forceWholeGame;
 
   if(isFieldOut){
     showFieldOutAnimation();
-  }else if(isDeckEnd){
-    // 山札を使い切ってゲーム全体が終了した時のみ
-    showGameSetAnimation();
   }
-  // 通常の1ゲーム終了では Game Set! を表示しない
 
+  // Game Set! は全ゲーム終了時だけ表示する。
   if(forceWholeGame || gameNo>=maxGames){
-    endWholeGame(forceWholeGame);
+    const gameSetDelay=(isFieldOut || isDobon) ? 2300 : 0;
+    endWholeGame(forceWholeGame,gameSetDelay);
   }
 }
 
-function endWholeGame(deckExhausted=false){
+function endWholeGame(deckExhausted=false,gameSetDelay=0){
   wholeGameEnded=true;
   els.nextGameBtn.hidden=true;
   const ranking=[...players].sort((a,b)=>b.total-a.total);
@@ -1258,19 +1252,24 @@ function endWholeGame(deckExhausted=false){
   addLog(`最終結果：1位 ${winner.name}（${formatScore(winner.total)}）`);
   render();
 
+  // 全てのゲームが終了した時にだけ Game Set! を表示する。
+  setTimeout(showGameSetAnimation,gameSetDelay);
+
   if(winner.human){
-launchCelebration();
-    try{
-      const ctx=new (window.AudioContext||window.webkitAudioContext)();
-      [523,659,784,1046].forEach((f,i)=>{
-        const o=ctx.createOscillator(),g=ctx.createGain();
-        o.frequency.value=f;o.type="triangle";
-        g.gain.value=.08;
-        o.connect(g);g.connect(ctx.destination);
-        o.start(ctx.currentTime+i*.12);
-        o.stop(ctx.currentTime+i*.12+.25);
-      });
-    }catch(e){}
+    setTimeout(()=>{
+      launchCelebration();
+      try{
+        const ctx=new (window.AudioContext||window.webkitAudioContext)();
+        [523,659,784,1046].forEach((f,i)=>{
+          const o=ctx.createOscillator(),g=ctx.createGain();
+          o.frequency.value=f;o.type="triangle";
+          g.gain.value=.08;
+          o.connect(g);g.connect(ctx.destination);
+          o.start(ctx.currentTime+i*.12);
+          o.stop(ctx.currentTime+i*.12+.25);
+        });
+      }catch(e){}
+    },gameSetDelay+1750);
   }
 }
 
