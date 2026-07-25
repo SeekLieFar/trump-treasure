@@ -1414,10 +1414,26 @@ els.soundBtn.addEventListener("click",()=>{
 });
 
 document.getElementById("rulesBtn").addEventListener("click",()=>{
-  document.getElementById("rulesDialog").showModal();
+  const dialog=document.getElementById("rulesDialog");
+  const gameCountText=document.getElementById("rulesGameCount");
+  const multiplierText=document.getElementById("rulesScoreMultiplier");
+  if(gameCountText) gameCountText.textContent=maxGames.toLocaleString("ja-JP");
+  if(multiplierText) multiplierText.textContent=scoreMultiplier.toLocaleString("ja-JP");
+  if(dialog && !dialog.open) dialog.showModal();
 });
-document.getElementById("closeRulesBtn").addEventListener("click",()=>{
-  document.getElementById("rulesDialog").close();
+
+// ルールダイアログはscriptより後に置かれているため、イベント委譲で確実に閉じる。
+document.addEventListener("click",(event)=>{
+  if(event.target.closest("#closeRulesBtn")){
+    const dialog=document.getElementById("rulesDialog");
+    if(dialog && dialog.open) dialog.close();
+    return;
+  }
+
+  const dialog=document.getElementById("rulesDialog");
+  if(dialog && dialog.open && event.target===dialog){
+    dialog.close();
+  }
 });
 
 
@@ -1629,15 +1645,16 @@ function launchCelebration(){
   <div class="dialog-body">
     <h3>ルール説明</h3>
     <ul style="line-height:1.7">
-      <li>全12ゲーム行います。</li>
+      <li>全<span id="rulesGameCount">5</span>ゲーム行います。</li>
       <li>最初に親カードを1枚引きます。</li>
       <li>親カードが7以下なら「同じマークで親カード以上」がドボンカードです。</li>
       <li>親カードが8以上なら「同じマークで親カード以下」がドボンカードです。</li>
-      <li>安全なカードなら「カードの数字×1000」を参加者全員で均等に分け、未確定ポイントになります。</li>
+      <li>安全なカードなら「カードの数字×<span id="rulesScoreMultiplier">1000</span>」を参加者全員で均等に分け、未確定ポイントになります。</li>
       <li>各ターンで「続ける」か「降りる」を選びます。</li>
       <li>降りると未確定ポイントが確定得点になります。</li>
       <li>ドボンカードが出ると探索中のプレイヤーは未確定ポイントを失います。</li>
-      <li>全員が降りるかドボンカードが出ると、そのゲームは終了します。</li>
+      <li><strong>Field Out!</strong>：探索中の全員が降りると、そのゲームは終了します。降りたプレイヤーの未確定ポイントは確定得点になります。</li>
+      <li>ドボンカードが出ると、そのゲームは終了します。</li>
       <li>ジョーカーは好きな数字・マークとして申告できます。</li>
       <li>画面には残りの安全札・危険札・ドボンの確率が表示されます。</li>
       <li>CPU性格は「慎重・普通・強気」から選べます。</li>
