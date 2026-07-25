@@ -601,7 +601,7 @@ to{transform:scale(1.15)}}
     <p class="settings-note">設定を変更すると、確認後に選択したゲーム数で最初から開始します。</p>
   </section>
 
-  <section class="high-score-board" aria-label="最高スコア記録">
+  <section class="high-score-board" aria-label="ハイスコアランキング">
     <h2>最高スコア記録</h2>
     <div class="high-score-current">
       <div class="high-score-box">
@@ -609,12 +609,12 @@ to{transform:scale(1.15)}}
         <strong id="currentRecordSetting">CPU 3人・5ゲーム・×1,000</strong>
       </div>
       <div class="high-score-box">
-        <span>この設定でのあなたの最高スコア</span>
+        <span>この設定での1位スコア</span>
         <strong id="currentHighScore">未記録</strong>
       </div>
     </div>
     <div id="highScoreTableWrap" class="high-score-table-wrap">
-      <div class="high-score-empty">まだ最高スコアの記録はありません。</div>
+      <div class="high-score-empty">この設定では、まだランキング記録がありません。</div>
     </div>
   </section>
 
@@ -1416,10 +1416,10 @@ function endWholeGame(deckExhausted=false,gameSetDelay=0){
 
   const human=players.find(p=>p.human);
   const humanFinalScore=human ? human.total : 0;
-  const isNewHighScore=recordHumanHighScore(humanFinalScore);
-  if(isNewHighScore){
-    addLog(`新記録！ この設定での最高スコアを${formatScore(humanFinalScore)}に更新しました。`);
-    els.message.textContent+=` あなたの新記録です！`;
+  const rankingResult=recordHumanHighScore(humanFinalScore);
+  if(rankingResult.enteredTop10){
+    addLog(`ランキング入り！ この設定で${rankingResult.rank}位に入りました（${formatScore(humanFinalScore)}）。`);
+    els.message.textContent+=` あなたはこの設定の記録で${rankingResult.rank}位です！`;
   }
 
   render();
@@ -1508,69 +1508,101 @@ function saveHighScores(records){
   }
 }
 
+function normalizeRankingEntry(entry){
+  if(typeof entry==="number"){
+    return {score:Number(entry),recordedAt:""};
+  }
+  if(entry && typeof entry==="object"){
+    return {
+      score:Number(entry.score),
+      recordedAt:String(entry.recordedAt || "")
+    };
+  }
+  return null;
+}
+
+function getRankingForSetting(records,key){
+  const stored=records[key];
+
+  // 旧仕様の単独最高スコアも自動でランキングへ移行する。
+  if(stored && !Array.isArray(stored) && Number.isFinite(Number(stored.score))){
+    return [{
+      score:Number(stored.score),
+      recordedAt:String(stored.recordedAt || "")
+    }];
+  }
+
+  if(!Array.isArray(stored)) return [];
+
+  return stored
+    .map(normalizeRankingEntry)
+    .filter(entry=>entry && Number.isFinite(entry.score))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,10);
+}
+
 function recordHumanHighScore(score){
   const records=loadHighScores();
   const key=highScoreKey();
-  const previous=Number(records[key]?.score ?? -1);
-  if(score>previous){
-    records[key]={
-      cpuCount,
-      maxGames,
-      scoreMultiplier,
-      score,
-      recordedAt:new Date().toISOString()
-    };
-    saveHighScores(records);
-    renderHighScoreBoard(key);
-    return true;
-  }
-  renderHighScoreBoard();
-  return false;
+  const ranking=getRankingForSetting(records,key);
+
+  const newEntry={
+    score:Number(score),
+    recordedAt:new Date().toISOString()
+  };
+
+  ranking.push(newEntry);
+  ranking.sort((a,b)=>b.score-a.score);
+
+  const newRank=ranking.indexOf(newEntry)+1;
+  const enteredTop10=newRank>=1 && newRank<=10;
+
+  records[key]=ranking.slice(0,10);
+  saveHighScores(records);
+  renderHighScoreBoard(enteredTop10 ? key : "",enteredTop10 ? newRank : null);
+
+  return {
+    enteredTop10,
+    rank:enteredTop10 ? newRank : null
+  };
 }
 
-function renderHighScoreBoard(highlightKey=""){
+function renderHighScoreBoard(highlightKey="",highlightRank=null){
   if(!els.currentRecordSetting || !els.currentHighScore || !els.highScoreTableWrap) return;
 
   const records=loadHighScores();
   const currentKey=highScoreKey();
-  const current=records[currentKey];
+  const currentRanking=getRankingForSetting(records,currentKey);
 
   els.currentRecordSetting.textContent=
     `CPU ${cpuCount}人・${maxGames}ゲーム・×${scoreMultiplier.toLocaleString("ja-JP")}`;
-  els.currentHighScore.textContent=current
-    ? `${Number(current.score).toLocaleString("ja-JP")}点`
+  els.currentHighScore.textContent=currentRanking.length
+    ? `${currentRanking[0].score.toLocaleString("ja-JP")}点`
     : "未記録";
 
-  const rows=Object.entries(records)
-    .map(([key,value])=>({key,...value}))
-    .filter(record=>
-      Number.isFinite(Number(record.cpuCount)) &&
-      Number.isFinite(Number(record.maxGames)) &&
-      Number.isFinite(Number(record.scoreMultiplier)) &&
-      Number.isFinite(Number(record.score))
-    )
-    .sort((a,b)=>
-      a.cpuCount-b.cpuCount ||
-      a.maxGames-b.maxGames ||
-      a.scoreMultiplier-b.scoreMultiplier
-    );
-
-  if(rows.length===0){
+  if(currentRanking.length===0){
     els.highScoreTableWrap.innerHTML=
-      '<div class="high-score-empty">まだ最高スコアの記録はありません。</div>';
+      '<div class="high-score-empty">この設定では、まだランキング記録がありません。</div>';
     return;
   }
 
   els.highScoreTableWrap.innerHTML=`
     <table class="high-score-table">
-      <thead><tr><th>CPU人数</th><th>ゲーム数</th><th>得点倍率</th><th>最高スコア</th></tr></thead>
+      <thead>
+        <tr>
+          <th>順位</th>
+          <th>スコア</th>
+          <th>記録日時</th>
+        </tr>
+      </thead>
       <tbody>
-        ${rows.map(record=>`
-          <tr class="${record.key===highlightKey ? "high-score-new" : ""}">
-            <td>${Number(record.cpuCount).toLocaleString("ja-JP")}人</td>
-            <td>${Number(record.maxGames).toLocaleString("ja-JP")}</td>
-            <td>×${Number(record.scoreMultiplier).toLocaleString("ja-JP")}</td>
-            <td>${Number(record.score).toLocaleString("ja-JP")}点</td>
+        ${currentRanking.map((entry,index)=>`
+          <tr class="${highlightKey===currentKey && highlightRank===index+1 ? "high-score-new" : ""}">
+            <td>${index+1}位</td>
+            <td>${entry.score.toLocaleString("ja-JP")}点</td>
+            <td>${entry.recordedAt
+              ? new Date(entry.recordedAt).toLocaleString("ja-JP")
+              : "旧記録"}</td>
           </tr>
         `).join("")}
       </tbody>
