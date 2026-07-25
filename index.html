@@ -648,6 +648,7 @@ to{transform:scale(1.15)}}
       </div>
 
       <button id="drawNextBtn" class="next-game" hidden>次のカードを引く</button>
+      <button id="drawAllSafeBtn" class="next-game" hidden>残りのカードを全部引く</button>
       <button id="nextGameBtn" class="next-game" hidden>次のゲームへ</button>
       <button id="restartBtn" class="restart">最初からやり直す</button>
       <button id="rulesBtn" class="restart">ルール説明</button>
@@ -718,6 +719,7 @@ let roundEnded = false;
 let wholeGameEnded = false;
 let pendingJoker = false;
 let waitingForNextDraw = false;
+let bulkDrawing = false;
 let gameStarted = false;
 let soundEnabled = true;
 
@@ -770,6 +772,7 @@ const els = {
   continueBtn:$("continueBtn"),
   foldBtn:$("foldBtn"),
   drawNextBtn:$("drawNextBtn"),
+  drawAllSafeBtn:$("drawAllSafeBtn"),
   nextGameBtn:$("nextGameBtn"),
   restartBtn:$("restartBtn"),
   jokerDialog:$("jokerDialog"),
@@ -953,7 +956,7 @@ function render(){
 
   const decisionHuman=players[0];
   const decisionDisabled =
-    !gameStarted || roundEnded || wholeGameEnded || !decisionHuman.active || pendingJoker || waitingForNextDraw;
+    !gameStarted || roundEnded || wholeGameEnded || !decisionHuman.active || pendingJoker || waitingForNextDraw || bulkDrawing;
 
   els.startGameBtn.hidden=gameStarted;
   els.continueBtn.hidden=!gameStarted;
@@ -961,8 +964,19 @@ function render(){
   els.continueBtn.disabled=decisionDisabled;
   els.foldBtn.disabled=decisionDisabled;
 
+  const noDangerLeft =
+    parentCard && deck.length>0 && remainingStats().danger===0;
+
   els.drawNextBtn.hidden =
-    !gameStarted || !waitingForNextDraw || roundEnded || wholeGameEnded;
+    !gameStarted || !waitingForNextDraw || roundEnded || wholeGameEnded || bulkDrawing;
+
+  els.drawAllSafeBtn.hidden =
+    !gameStarted ||
+    !waitingForNextDraw ||
+    roundEnded ||
+    wholeGameEnded ||
+    bulkDrawing ||
+    !noDangerLeft;
 
   els.nextGameBtn.hidden=!gameStarted || !roundEnded || wholeGameEnded;
 }
@@ -983,6 +997,8 @@ function startRound(){
   roundEnded=false;
   pendingJoker=false;
   waitingForNextDraw=false;
+  bulkDrawing=false;
+  bulkDrawResume=null;
   lastDrawn=null;
 
   players.forEach(p=>{
@@ -1127,6 +1143,10 @@ function cpuChoice(player){
     if(c.joker) return false;
     return isHazard(c);
   }).length;
+
+  // 山札の危険札が0枚なら、まだ降りていないCPUは必ず続ける。
+  if(deck.length>0 && dangerCards===0) return "continue";
+
   const risk=deck.length?dangerCards/deck.length:1;
   const greed=Math.min(.35, player.pending/30000);
   const gamePressure=gameNo>=9 ? .08 : 0;
@@ -1143,6 +1163,13 @@ function continueCpuOnlyTurn(){
   const active = activePlayers();
   if(active.length === 0){
     endRound("全員が降りました。");
+    return;
+  }
+
+  if(deck.length>0 && remainingStats().danger===0){
+    els.message.textContent = "危険札が0枚のため、CPUが残りのカードをすべて引きます。";
+    render();
+    setTimeout(drawAllRemainingSafeCards,500);
     return;
   }
 
@@ -1219,6 +1246,79 @@ function resolveChoices(){
   }
 }
 
+
+let bulkDrawResume=null;
+
+function drawAllRemainingSafeCards(){
+  if(
+    bulkDrawing ||
+    roundEnded ||
+    wholeGameEnded ||
+    pendingJoker ||
+    deck.length===0 ||
+    remainingStats().danger!==0
+  ) return;
+
+  bulkDrawing=true;
+  waitingForNextDraw=false;
+  els.message.textContent="危険札が0枚のため、探索中のプレイヤーが残りのカードをすべて引きます。";
+  addLog("山札の危険札が0枚になったため、残りのカードを一括で引きます。");
+  render();
+
+  const drawOne=()=>{
+    if(roundEnded || wholeGameEnded){
+      bulkDrawing=false;
+      bulkDrawResume=null;
+      render();
+      return;
+    }
+
+    if(deck.length===0){
+      activePlayers().forEach(p=>{
+        p.total+=p.pending;
+        addLog(`${p.name}の未確定得点${formatScore(p.pending)}を、山札終了により確定。`);
+        p.pending=0;
+        p.active=false;
+        p.choice=null;
+      });
+      bulkDrawing=false;
+      bulkDrawResume=null;
+      endRound("山札のカードをすべて引き切ったため、ゲームを終了しました。", true);
+      return;
+    }
+
+    const card=deck.pop();
+    lastDrawn=card;
+    els.drawnCard.className="draw-flash";
+    els.drawnCard.innerHTML=cardHTML(card);
+    discard.push(card);
+
+    if(card.joker){
+      pendingJoker=true;
+      bulkDrawResume=drawOne;
+      els.message.textContent="ジョーカーです。あなたが降りていても、スートと数字を指定してください。";
+      addLog("一括処理中にジョーカーが出ました。プレイヤーの申告を待っています。");
+      render();
+      if(!els.jokerDialog.open) els.jokerDialog.showModal();
+      return;
+    }
+
+    const active=activePlayers();
+    const points=active.length
+      ? Math.floor((card.rank*scoreMultiplier)/active.length)
+      : 0;
+    active.forEach(p=>p.pending+=points);
+
+    addLog(`${rankText(card.rank)}${card.suit}を引き、参加者${active.length}人に${formatScore(points)}ずつ加算。`);
+    beep(700,.05,"triangle");
+    render();
+
+    setTimeout(drawOne,180);
+  };
+
+  drawOne();
+}
+
 function endRound(reason, forceWholeGame=false){
   waitingForNextDraw=false;
   roundEnded=true;
@@ -1291,6 +1391,8 @@ function resetToStartScreen(){
   roundEnded=false;
   pendingJoker=false;
   waitingForNextDraw=false;
+  bulkDrawing=false;
+  bulkDrawResume=null;
   gameStarted=false;
   deck=[];
   discard=[];
@@ -1362,6 +1464,7 @@ els.drawNextBtn.addEventListener("click",()=>{
   setTimeout(drawCard,250);
 });
 
+els.drawAllSafeBtn.addEventListener("click",drawAllRemainingSafeCards);
 els.nextGameBtn.addEventListener("click",nextRound);
 els.restartBtn.addEventListener("click",restartAll);
 
@@ -1401,8 +1504,51 @@ els.jokerConfirm.addEventListener("click",()=>{
   pendingJoker=false;
   els.jokerDialog.close();
   discard[discard.length-1]=declared;
+  lastDrawn=declared;
   els.drawnCard.innerHTML=cardHTML(declared);
   addLog(`あなたはジョーカーを${rankText(rank)}${suit}として申告。`);
+
+  if(bulkDrawing){
+    // 一括処理中のジョーカーは得点札ではなく、逆転を狙うカードとして扱う。
+    // 宣言したカードがドボン条件を満たせば、探索中のCPUをドボンにする。
+    if(isHazard(declared)){
+      bulkDrawing=false;
+      bulkDrawResume=null;
+      showDobonAnimation();
+      els.drawnCard.classList.add("hazard-flash");
+      beep(140,.35,"sawtooth");
+      addLog(`${rankText(declared.rank)}${declared.suit}として申告したジョーカーはドボンカード。探索中の全員が未確定ポイントを失いました。`);
+      activePlayers().forEach(p=>p.pending=0);
+      endRound(
+        deck.length===0
+          ? "最後のジョーカーがドボンカードになりました。山札を使い切ったためゲームを強制終了します。"
+          : "ジョーカーによってドボンカードが出ました。",
+        deck.length===0
+      );
+      return;
+    }
+
+    // 安全な申告だった場合は、探索中のCPUだけに得点を加算する。
+    const activeCpu=activePlayers().filter(p=>!p.human);
+    const points=activeCpu.length
+      ? Math.floor((declared.rank*scoreMultiplier)/activeCpu.length)
+      : 0;
+
+    activeCpu.forEach(cpu=>cpu.pending+=points);
+
+    addLog(
+      `ジョーカーを${rankText(declared.rank)}${declared.suit}として申告。` +
+      `探索中のCPU${activeCpu.length}人に${formatScore(points)}ずつ加算。`
+    );
+    beep(700,.05,"triangle");
+    render();
+
+    const resume=bulkDrawResume;
+    bulkDrawResume=null;
+    if(resume) setTimeout(resume,180);
+    return;
+  }
+
   resolveDrawnCard(declared);
 });
 
@@ -1657,6 +1803,7 @@ function launchCelebration(){
       <li>ドボンカードが出ると、そのゲームは終了します。</li>
       <li>ジョーカーは好きな数字・マークとして申告できます。</li>
       <li>画面には残りの安全札・危険札・ドボンの確率が表示されます。</li>
+      <li>山札の危険札が0枚になると、降りていないCPUは必ず続け、「残りのカードを全部引く」ボタンで安全な残り札を一括して引けます</li>
       <li>CPU性格は「慎重・普通・強気」から選べます。</li>
     </ul>
     <button id="closeRulesBtn" class="confirm">閉じる</button>
