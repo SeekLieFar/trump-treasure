@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trump Treasure</title>
+
+  <meta name="theme-color" content="#0d1422" />
+  <meta name="application-name" content="Trump Treasure" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Trump Treasure" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
+
   <style>
     :root {
       --bg: #0d1422;
@@ -2039,5 +2050,16 @@ function launchCelebration(){
 <div id="confettiContainer" style="position:absolute;inset:0;overflow:hidden;pointer-events:none"></div>
 <h1>Congratulations!!</h1>
 </div>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+      console.error("Service Worker registration failed:", error);
+    });
+  });
+}
+</script>
+
 </body>
 </html>
