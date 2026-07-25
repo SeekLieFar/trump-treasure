@@ -531,6 +531,22 @@ to{transform:scale(1.15)}}
   100%{opacity:0;scale:1.25}
 }
 
+
+.high-score-board{margin:16px 0 22px;padding:18px;border:1px solid rgba(150,180,255,.22);border-radius:20px;background:linear-gradient(145deg,rgba(27,44,78,.96),rgba(17,29,54,.96));box-shadow:0 12px 28px rgba(0,0,0,.24)}
+.high-score-board h2{margin:0 0 12px;font-size:1.25rem}
+.high-score-current{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.high-score-box{padding:13px;border-radius:14px;background:rgba(7,16,34,.55)}
+.high-score-box span{display:block;color:#b9c5df;font-size:.82rem;margin-bottom:5px}
+.high-score-box strong{display:block;font-size:1.12rem;overflow-wrap:anywhere}
+.high-score-table-wrap{max-height:290px;overflow:auto;border-radius:14px;border:1px solid rgba(255,255,255,.08)}
+.high-score-table{width:100%;border-collapse:collapse;min-width:520px;font-size:.88rem}
+.high-score-table th,.high-score-table td{padding:10px 8px;text-align:right;border-bottom:1px solid rgba(255,255,255,.07);white-space:nowrap}
+.high-score-table th:first-child,.high-score-table td:first-child{text-align:left}
+.high-score-table thead th{position:sticky;top:0;z-index:1;background:#182944}
+.high-score-empty{padding:18px;text-align:center;color:#aebbd4}
+.high-score-new{color:#ffd86b;font-weight:900}
+@media(max-width:600px){.high-score-current{grid-template-columns:1fr}.high-score-board{padding:14px}}
+
 </style>
 </head>
 <body>
@@ -584,6 +600,24 @@ to{transform:scale(1.15)}}
     </div>
     <p class="settings-note">設定を変更すると、確認後に選択したゲーム数で最初から開始します。</p>
   </section>
+
+  <section class="high-score-board" aria-label="最高スコア記録">
+    <h2>最高スコア記録</h2>
+    <div class="high-score-current">
+      <div class="high-score-box">
+        <span>現在の設定</span>
+        <strong id="currentRecordSetting">CPU 3人・5ゲーム・×1,000</strong>
+      </div>
+      <div class="high-score-box">
+        <span>この設定でのあなたの最高スコア</span>
+        <strong id="currentHighScore">未記録</strong>
+      </div>
+    </div>
+    <div id="highScoreTableWrap" class="high-score-table-wrap">
+      <div class="high-score-empty">まだ最高スコアの記録はありません。</div>
+    </div>
+  </section>
+
 
 
   <div class="grid">
@@ -778,7 +812,10 @@ const els = {
   jokerDialog:$("jokerDialog"),
   jokerRank:$("jokerRank"),
   jokerSuit:$("jokerSuit"),
-  jokerConfirm:$("jokerConfirm")
+  jokerConfirm:$("jokerConfirm"),
+  currentRecordSetting:$("currentRecordSetting"),
+  currentHighScore:$("currentHighScore"),
+  highScoreTableWrap:$("highScoreTableWrap")
 };
 
 function createDeck(){
@@ -1376,6 +1413,15 @@ function endWholeGame(deckExhausted=false,gameSetDelay=0){
     : `${maxGames}ゲーム終了`;
   els.message.textContent=`${endLabel}。1位は${winner.name}、${formatScore(winner.total)}です。`;
   addLog(`最終結果：1位 ${winner.name}（${formatScore(winner.total)}）`);
+
+  const human=players.find(p=>p.human);
+  const humanFinalScore=human ? human.total : 0;
+  const isNewHighScore=recordHumanHighScore(humanFinalScore);
+  if(isNewHighScore){
+    addLog(`新記録！ この設定での最高スコアを${formatScore(humanFinalScore)}に更新しました。`);
+    els.message.textContent+=` あなたの新記録です！`;
+  }
+
   render();
 
   // 全てのゲームが終了した時にだけ Game Set! を表示する。
@@ -1438,6 +1484,100 @@ function restartAll(){
   resetToStartScreen();
 }
 
+
+const HIGH_SCORE_STORAGE_KEY="trumpTreasureHighScoresV1";
+
+function highScoreKey(cpu=cpuCount,games=maxGames,multiplier=scoreMultiplier){
+  return `${cpu}|${games}|${multiplier}`;
+}
+
+function loadHighScores(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(HIGH_SCORE_STORAGE_KEY) || "{}");
+    return parsed && typeof parsed==="object" ? parsed : {};
+  }catch(error){
+    return {};
+  }
+}
+
+function saveHighScores(records){
+  try{
+    localStorage.setItem(HIGH_SCORE_STORAGE_KEY,JSON.stringify(records));
+  }catch(error){
+    addLog("最高スコアを端末に保存できませんでした。");
+  }
+}
+
+function recordHumanHighScore(score){
+  const records=loadHighScores();
+  const key=highScoreKey();
+  const previous=Number(records[key]?.score ?? -1);
+  if(score>previous){
+    records[key]={
+      cpuCount,
+      maxGames,
+      scoreMultiplier,
+      score,
+      recordedAt:new Date().toISOString()
+    };
+    saveHighScores(records);
+    renderHighScoreBoard(key);
+    return true;
+  }
+  renderHighScoreBoard();
+  return false;
+}
+
+function renderHighScoreBoard(highlightKey=""){
+  if(!els.currentRecordSetting || !els.currentHighScore || !els.highScoreTableWrap) return;
+
+  const records=loadHighScores();
+  const currentKey=highScoreKey();
+  const current=records[currentKey];
+
+  els.currentRecordSetting.textContent=
+    `CPU ${cpuCount}人・${maxGames}ゲーム・×${scoreMultiplier.toLocaleString("ja-JP")}`;
+  els.currentHighScore.textContent=current
+    ? `${Number(current.score).toLocaleString("ja-JP")}点`
+    : "未記録";
+
+  const rows=Object.entries(records)
+    .map(([key,value])=>({key,...value}))
+    .filter(record=>
+      Number.isFinite(Number(record.cpuCount)) &&
+      Number.isFinite(Number(record.maxGames)) &&
+      Number.isFinite(Number(record.scoreMultiplier)) &&
+      Number.isFinite(Number(record.score))
+    )
+    .sort((a,b)=>
+      a.cpuCount-b.cpuCount ||
+      a.maxGames-b.maxGames ||
+      a.scoreMultiplier-b.scoreMultiplier
+    );
+
+  if(rows.length===0){
+    els.highScoreTableWrap.innerHTML=
+      '<div class="high-score-empty">まだ最高スコアの記録はありません。</div>';
+    return;
+  }
+
+  els.highScoreTableWrap.innerHTML=`
+    <table class="high-score-table">
+      <thead><tr><th>CPU人数</th><th>ゲーム数</th><th>得点倍率</th><th>最高スコア</th></tr></thead>
+      <tbody>
+        ${rows.map(record=>`
+          <tr class="${record.key===highlightKey ? "high-score-new" : ""}">
+            <td>${Number(record.cpuCount).toLocaleString("ja-JP")}人</td>
+            <td>${Number(record.maxGames).toLocaleString("ja-JP")}</td>
+            <td>×${Number(record.scoreMultiplier).toLocaleString("ja-JP")}</td>
+            <td>${Number(record.score).toLocaleString("ja-JP")}点</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
 function updateSettingButtons(){
   document.querySelectorAll("[data-cpu-count]").forEach(btn=>{
     btn.classList.toggle("selected", Number(btn.dataset.cpuCount) === cpuCount);
@@ -1448,6 +1588,7 @@ function updateSettingButtons(){
   document.querySelectorAll("[data-game-count]").forEach(btn=>{
     btn.classList.toggle("selected", Number(btn.dataset.gameCount) === maxGames);
   });
+  renderHighScoreBoard();
 }
 
 function changeGameSetting(type, value){
