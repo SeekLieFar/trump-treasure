@@ -275,6 +275,10 @@
     .settings-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .settings label { color:var(--muted); font-weight:700; }
     .settings select { width:auto; min-width:150px; }
+    .cpu-style-top { margin: 0 0 14px; }
+    .cpu-choice-summary-row { justify-content:space-between; }
+    .cpu-choice-summary-label { color:var(--muted); font-weight:800; }
+    #cpuChoiceSummary { color:var(--accent); font-size:1.05rem; }
     .draw-flash { animation: drawFlash .55s ease; }
     .hazard-flash { animation: hazardShake .6s ease; }
     @keyframes drawFlash { 0%{transform:scale(.75) rotate(-6deg);opacity:.15} 70%{transform:scale(1.05) rotate(2deg);opacity:1} 100%{transform:scale(1) rotate(0)} }
@@ -357,6 +361,22 @@
       margin: 8px 0 0;
       opacity: .78;
       font-size: .9rem;
+    }
+
+    .deck-count-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .deck-count-row .setting-label {
+      min-width: 0;
+      width: 100%;
+    }
+
+    #deckCountButtons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
 
@@ -466,6 +486,83 @@ to{transform:scale(1.15)}}
 @keyframes gameSetFade{0%{opacity:0}15%,72%{opacity:1}100%{opacity:0}}
 @keyframes gameSetTextIn{0%{opacity:0;transform:scale(.86) translateY(12px)}22%{opacity:1;transform:scale(1) translateY(0)}76%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(.98) translateY(-6px)}}
 
+
+
+#mountBitedOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9700;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at center, rgba(255,196,68,.30), rgba(22,12,2,.92) 72%);
+}
+#mountBitedOverlay.show{
+  display:flex;
+  animation:mountBitedScreen 2.25s ease forwards;
+}
+#mountBitedText{
+  position:relative;
+  z-index:2;
+  padding:.24em .52em;
+  border:4px solid rgba(255,218,100,.95);
+  border-radius:22px;
+  background:rgba(34,20,5,.84);
+  color:#fff4c8;
+  font-size:clamp(52px,12vw,145px);
+  font-weight:1000;
+  letter-spacing:.045em;
+  text-align:center;
+  text-shadow:
+    0 0 14px rgba(255,255,255,.9),
+    0 0 38px rgba(255,190,50,.95),
+    0 10px 20px rgba(0,0,0,.55);
+  opacity:0;
+  transform:scale(.28) rotate(-6deg);
+}
+#mountBitedOverlay.show #mountBitedText{
+  animation:mountBitedBurst 2s cubic-bezier(.12,.78,.18,1) forwards;
+}
+#mountBitedOverlay::before,
+#mountBitedOverlay::after{
+  content:"";
+  position:absolute;
+  width:160vmax;
+  height:14px;
+  background:rgba(255,245,200,.85);
+  box-shadow:
+    0 -58px 0 rgba(255,177,35,.85),
+    0 58px 0 rgba(255,222,95,.72);
+  opacity:0;
+}
+#mountBitedOverlay.show::before{
+  transform:rotate(30deg);
+  animation:mountBitedLines 1.6s ease-out forwards;
+}
+#mountBitedOverlay.show::after{
+  transform:rotate(-30deg);
+  animation:mountBitedLines 1.6s .08s ease-out forwards;
+}
+@keyframes mountBitedScreen{
+  0%{opacity:0}
+  12%,76%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes mountBitedBurst{
+  0%{opacity:0;transform:scale(.28) rotate(-6deg)}
+  27%{opacity:1;transform:scale(1.2) rotate(3deg)}
+  48%{transform:scale(.95) rotate(-1deg)}
+  70%{transform:scale(1.04) rotate(0)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes mountBitedLines{
+  0%{opacity:0;scale:.22}
+  34%{opacity:1}
+  100%{opacity:0;scale:1.28}
+}
 
 #fieldOutOverlay{
   position:fixed;
@@ -581,6 +678,14 @@ to{transform:scale(1.15)}}
         <button class="setting-btn" data-cpu-count="99">99</button>
       </div>
     </div>
+    <div class="setting-row deck-count-row">
+      <span class="setting-label">山札の数</span>
+      <div id="deckCountButtons">
+        <button class="setting-btn selected" data-deck-count="1">1</button>
+        <button class="setting-btn" data-deck-count="2">2</button>
+        <button class="setting-btn" data-deck-count="3">3</button>
+      </div>
+    </div>
     <div class="setting-row">
       <span class="setting-label">ゲーム数</span>
       <div id="gameCountButtons">
@@ -609,7 +714,7 @@ to{transform:scale(1.15)}}
         <button class="setting-btn" data-score-multiplier="10000">×10000</button>
       </div>
     </div>
-    <p class="settings-note">設定を変更すると、確認後に選択したゲーム数で最初から開始します。</p>
+    <p class="settings-note">設定を変更すると、確認後に最初から開始します。山札を複数選んだ場合、1つの山札を使い切るたびにそのゲームを終了します。</p>
   </section>
 
   <section class="high-score-board" aria-label="ハイスコアランキング">
@@ -617,7 +722,7 @@ to{transform:scale(1.15)}}
     <div class="high-score-current">
       <div class="high-score-box">
         <span>現在の設定</span>
-        <strong id="currentRecordSetting">CPU 3人・5ゲーム・×1,000</strong>
+        <strong id="currentRecordSetting">CPU 3人・山札1つ・5ゲーム・×1,000</strong>
       </div>
       <div class="high-score-box">
         <span>この設定での1位スコア</span>
@@ -635,12 +740,22 @@ to{transform:scale(1.15)}}
     <section class="panel">
       <div class="status-row">
         <div class="badge">ゲーム <span id="gameNo">1</span>/<span id="maxGamesDisplay">5</span></div>
-        <div class="badge">山札 <span id="deckCount">0</span>枚</div>
+        <div class="badge">山札 <span id="deckNoDisplay">1</span>/<span id="deckTotalDisplay">1</span>・<span id="deckCount">0</span>枚</div>
         <div class="badge">参加者 <span id="activeCount">4</span>人</div>
       </div>
 
       <div class="message" id="message"></div>
 
+      <div class="settings cpu-style-top">
+        <div class="settings-row">
+          <label for="cpuStyle">CPU性格</label>
+          <select id="cpuStyle">
+            <option value="cautious">慎重</option>
+            <option value="normal" selected>普通</option>
+            <option value="bold">強気</option>
+          </select>
+        </div>
+      </div>
 
       <div class="live-scoreboard" aria-live="polite">
         <div class="live-score-item">
@@ -676,13 +791,9 @@ to{transform:scale(1.15)}}
         <div class="prob-box">ドボンの確率<strong id="dangerRate">0%</strong></div>
       </div>
       <div class="settings">
-        <div class="settings-row">
-          <label for="cpuStyle">CPU性格</label>
-          <select id="cpuStyle">
-            <option value="cautious">慎重</option>
-            <option value="normal" selected>普通</option>
-            <option value="bold">強気</option>
-          </select>
+        <div class="settings-row cpu-choice-summary-row">
+          <span class="cpu-choice-summary-label">CPUの選択</span>
+          <strong id="cpuChoiceSummary">残る 0人 ／ 降りる 0人</strong>
         </div>
       </div>
 
@@ -767,10 +878,14 @@ let waitingForNextDraw = false;
 let bulkDrawing = false;
 let gameStarted = false;
 let soundEnabled = true;
+let scoreRecordedForCurrentSession = false;
 
 let cpuCount = 3;
 let scoreMultiplier = 1000;
 let maxGames = 5;
+let selectedDeckCount = 1;
+let decksRemaining = 1;
+let currentDeckNumber = 1;
 let players = [];
 
 function buildPlayers(){
@@ -799,6 +914,8 @@ const els = {
   humanScoreDisplay:$("humanScoreDisplay"),
   leaderScoreDisplay:$("leaderScoreDisplay"),
   deckCount:$("deckCount"),
+  deckNoDisplay:$("deckNoDisplay"),
+  deckTotalDisplay:$("deckTotalDisplay"),
   activeCount:$("activeCount"),
   message:$("message"),
   parentCard:$("parentCard"),
@@ -809,6 +926,7 @@ const els = {
   dangerCount:$("dangerCount"),
   dangerRate:$("dangerRate"),
   cpuStyle:$("cpuStyle"),
+  cpuChoiceSummary:$("cpuChoiceSummary"),
   startGameBtn:$("startGameBtn"),
   soundBtn:$("soundBtn"),
   players:$("players"),
@@ -963,6 +1081,8 @@ function render(){
   els.leaderScoreDisplay.textContent=formatScore(leaderScore);
 
   els.deckCount.textContent=deck.length;
+  els.deckNoDisplay.textContent=Math.min(currentDeckNumber,selectedDeckCount);
+  els.deckTotalDisplay.textContent=selectedDeckCount;
   els.activeCount.textContent=activePlayers().length;
   els.parentCard.innerHTML=parentCard?cardHTML(parentCard):"";
   els.hazardInfo.textContent=parentCard?hazardDescription():"";
@@ -1002,6 +1122,13 @@ function render(){
   `;
   }).join("");
 
+  const activeCpuChoices=players.filter(p=>p.active && !p.human);
+  const continueCpuCount=activeCpuChoices.filter(p=>p.choice==="continue").length;
+  const foldCpuCount=activeCpuChoices.filter(p=>p.choice==="fold").length;
+  if(els.cpuChoiceSummary){
+    els.cpuChoiceSummary.textContent=`残る ${continueCpuCount}人 ／ 降りる ${foldCpuCount}人`;
+  }
+
   const decisionHuman=players[0];
   const decisionDisabled =
     !gameStarted || roundEnded || wholeGameEnded || !decisionHuman.active || pendingJoker || waitingForNextDraw || bulkDrawing;
@@ -1037,9 +1164,19 @@ function resetDrawnCard(){
 function startRound(){
   gameStarted=true;
 
-  // 山札は全ゲーム共通。新品の山札を作るのは最初の開始時だけ。
-  if(gameNo===1 && deck.length===0 && discard.length===0){
+  // 選択した山札を1つずつ使用する。
+  // ゲーム途中でドボンや全員降りになった場合、残っている同じ山札を次のゲームでも使う。
+  // 1つの山札を使い切った場合は、その時点で1ゲームを終了し、
+  // 次のゲーム開始時に次の山札を用意する。
+  if(deck.length===0){
+    if(decksRemaining<=0){
+      endWholeGame(true);
+      return;
+    }
+    currentDeckNumber=selectedDeckCount-decksRemaining+1;
     deck=createDeck();
+    decksRemaining--;
+    addLog(`山札${currentDeckNumber}/${selectedDeckCount}を開始しました。`);
   }
 
   roundEnded=false;
@@ -1055,11 +1192,6 @@ function startRound(){
     p.choice=null;
   });
 
-  if(deck.length===0){
-    endRound("山札のカードをすべて使い切りました。", true);
-    return;
-  }
-
   // 親カードにはジョーカーを使わない。
   // ジョーカーを通常カードとして宣言すると、実物の同一カードが山札に残り、
   // 親カードと今回のカードが同じ表示になるため、山札内の通常札から親を選ぶ。
@@ -1068,7 +1200,7 @@ function startRound(){
     .find(item=>!item.card.joker)?.index;
 
   if(parentIndex===undefined){
-    endRound("親カードにできる通常札が残っていないため、ゲームを終了しました。", true);
+    handleDeckExhausted("親カードにできる通常札が残っていません。");
     return;
   }
 
@@ -1081,11 +1213,31 @@ function startRound(){
   render();
 
   if(deck.length===0){
-    endRound("親カードを含め、山札のカードをすべて使い切りました。", true);
+    handleDeckExhausted("親カードを引いた時点で山札を使い切りました。");
     return;
   }
 
   setTimeout(drawCard, 350);
+}
+
+function handleDeckExhausted(detail="山札のカードをすべて使い切りました。"){
+  if(roundEnded || wholeGameEnded) return;
+
+  activePlayers().forEach(p=>{
+    p.total+=p.pending;
+    if(p.pending>0){
+      addLog(`${p.name}の未確定得点${formatScore(p.pending)}を、山札終了により確定。`);
+    }
+    p.pending=0;
+    p.active=false;
+    p.choice=null;
+  });
+
+  showMountBitedAnimation();
+
+  const noMoreDecks=decksRemaining<=0;
+  const reason=`Mount Bited! 山札${currentDeckNumber}/${selectedDeckCount}を使い切りました。${detail}`;
+  endRound(reason,noMoreDecks);
 }
 
 function distributeSafeCard(card){
@@ -1101,31 +1253,16 @@ function distributeSafeCard(card){
   addLog(`${rankText(card.rank)}${card.suit}は安全。参加者${active.length}人に${formatScore(points)}ずつ加算。`);
   waitingForNextDraw=false;
 
-  // 最後の安全札を引いた場合は、その得点を含めて未確定得点を確定し終了。
+  // 最後の安全札を引いた場合は、その時点で1ゲーム終了。
   if(deck.length===0){
-    activePlayers().forEach(p=>{
-      p.total+=p.pending;
-      addLog(`${p.name}の未確定得点${formatScore(p.pending)}を、山札終了により確定。`);
-      p.pending=0;
-      p.active=false;
-      p.choice=null;
-    });
-    endRound("山札のカードをすべて使い切ったため、ゲームを強制終了しました。", true);
+    handleDeckExhausted("最後の安全札まで引き切りました。");
     return;
   }
 
   prepareCpuChoices();
 
   if(players[0].active){
-    const cpuSummary = players
-      .filter(p => p.active && !p.human)
-      .map(p => `${p.name}：${p.choice === "continue" ? "続ける" : "降りる"}`)
-      .join("／");
-
-    els.message.textContent = cpuSummary
-      ? `CPUの選択：${cpuSummary}。あなたの判断を選んでください。`
-      : "続けるか、降りて得点を確定するか選んでください。";
-
+    els.message.textContent = "あなたの判断を選んでください。";
     render();
   } else {
     els.message.textContent="あなたは離脱済みです。CPUの探索を自動進行しています。";
@@ -1138,13 +1275,7 @@ function drawCard(){
   if(roundEnded) return;
 
   if(deck.length===0){
-    activePlayers().forEach(p=>{
-      p.total+=p.pending;
-      p.pending=0;
-      p.active=false;
-      p.choice=null;
-    });
-    endRound("山札のカードをすべて使い切ったため、ゲームを強制終了しました。", true);
+    handleDeckExhausted();
     return;
   }
 
@@ -1187,12 +1318,15 @@ function resolveDrawnCard(card){
     beep(140,.35,"sawtooth");
     addLog(`${rankText(card.rank)}${card.suit}はドボンカード。探索中の全員が未確定ポイントを失いました。`);
     activePlayers().forEach(p=>p.pending=0);
-    endRound(
-      deck.length===0
-        ? "最後のカードがドボンカードでした。山札を使い切ったためゲームを強制終了します。"
-        : "ドボンカードが出ました。",
-      deck.length===0
-    );
+    if(deck.length===0){
+      showMountBitedAnimation();
+      endRound(
+        `ドボンカードが出ました。Mount Bited! 山札${currentDeckNumber}/${selectedDeckCount}を使い切りました。`,
+        decksRemaining<=0
+      );
+    }else{
+      endRound("ドボンカードが出ました。");
+    }
     return;
   }
 
@@ -1336,16 +1470,9 @@ function drawAllRemainingSafeCards(){
     }
 
     if(deck.length===0){
-      activePlayers().forEach(p=>{
-        p.total+=p.pending;
-        addLog(`${p.name}の未確定得点${formatScore(p.pending)}を、山札終了により確定。`);
-        p.pending=0;
-        p.active=false;
-        p.choice=null;
-      });
       bulkDrawing=false;
       bulkDrawResume=null;
-      endRound("山札のカードをすべて引き切ったため、ゲームを終了しました。", true);
+      handleDeckExhausted("残りのカードをすべて引き切りました。");
       return;
     }
 
@@ -1459,13 +1586,30 @@ function endWholeGame(deckExhausted=false,gameSetDelay=0){
 function nextRound(){
   if(!roundEnded || wholeGameEnded) return;
 
-  if(deck.length===0){
+  if(gameNo>=maxGames){
+    endWholeGame(false);
+    return;
+  }
+
+  if(deck.length===0 && decksRemaining<=0){
     endWholeGame(true);
     return;
   }
 
   gameNo++;
   startRound();
+}
+
+function recordInterruptedGameScore(reason="途中終了"){
+  if(!gameStarted || wholeGameEnded || scoreRecordedForCurrentSession) return null;
+
+  const human=players.find(p=>p.human);
+  if(!human) return null;
+
+  const currentScore=human.total+human.pending;
+  const result=recordHumanHighScore(currentScore);
+  addLog(`${reason}時点の得点${formatScore(currentScore)}をランキングに記録しました。`);
+  return result;
 }
 
 function resetToStartScreen(){
@@ -1477,6 +1621,9 @@ function resetToStartScreen(){
   bulkDrawing=false;
   bulkDrawResume=null;
   gameStarted=false;
+  scoreRecordedForCurrentSession=false;
+  decksRemaining=selectedDeckCount;
+  currentDeckNumber=1;
   deck=[];
   discard=[];
   parentCard=null;
@@ -1492,14 +1639,15 @@ function resetToStartScreen(){
 }
 
 function restartAll(){
+  recordInterruptedGameScore("ゲーム中断");
   resetToStartScreen();
 }
 
 
 const HIGH_SCORE_STORAGE_KEY="trumpTreasureHighScoresV1";
 
-function highScoreKey(cpu=cpuCount,games=maxGames,multiplier=scoreMultiplier){
-  return `${cpu}|${games}|${multiplier}`;
+function highScoreKey(cpu=cpuCount,decks=selectedDeckCount,games=maxGames,multiplier=scoreMultiplier){
+  return `${cpu}|${decks}|${games}|${multiplier}`;
 }
 
 function loadHighScores(){
@@ -1553,6 +1701,7 @@ function getRankingForSetting(records,key){
 }
 
 function recordHumanHighScore(score){
+  scoreRecordedForCurrentSession = true;
   const records=loadHighScores();
   const key=highScoreKey();
   const ranking=getRankingForSetting(records,key);
@@ -1586,7 +1735,7 @@ function renderHighScoreBoard(highlightKey="",highlightRank=null){
   const currentRanking=getRankingForSetting(records,currentKey);
 
   els.currentRecordSetting.textContent=
-    `CPU ${cpuCount}人・${maxGames}ゲーム・×${scoreMultiplier.toLocaleString("ja-JP")}`;
+    `CPU ${cpuCount}人・山札${selectedDeckCount}つ・${maxGames}ゲーム・×${scoreMultiplier.toLocaleString("ja-JP")}`;
   els.currentHighScore.textContent=currentRanking.length
     ? `${currentRanking[0].score.toLocaleString("ja-JP")}点`
     : "未記録";
@@ -1631,6 +1780,9 @@ function updateSettingButtons(){
   document.querySelectorAll("[data-game-count]").forEach(btn=>{
     btn.classList.toggle("selected", Number(btn.dataset.gameCount) === maxGames);
   });
+  document.querySelectorAll("[data-deck-count]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.deckCount) === selectedDeckCount);
+  });
   renderHighScoreBoard();
 }
 
@@ -1640,17 +1792,23 @@ function changeGameSetting(type, value){
       ? `CPU人数を${value}人`
       : type === "score"
         ? `得点倍率を×${value}`
-        : `ゲーム数を${value}ゲーム`;
+        : type === "deck"
+          ? `山札の数を${value}つ`
+          : `ゲーム数を${value}ゲーム`;
   const ok = confirm(`${label}に変更し、ゲームを最初から始めますか？`);
   if(!ok){
     updateSettingButtons();
     return;
   }
 
+  recordInterruptedGameScore("設定変更による中断");
+
   if(type === "cpu"){
     cpuCount = value;
   }else if(type === "score"){
     scoreMultiplier = value;
+  }else if(type === "deck"){
+    selectedDeckCount = value;
   }else{
     maxGames = value;
   }
@@ -1694,6 +1852,14 @@ document.querySelectorAll("[data-score-multiplier]").forEach(btn=>{
   });
 });
 
+document.querySelectorAll("[data-deck-count]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.deckCount);
+    if(value===selectedDeckCount) return;
+    changeGameSetting("deck",value);
+  });
+});
+
 document.querySelectorAll("[data-game-count]").forEach(btn=>{
   btn.addEventListener("click",()=>{
     const value=Number(btn.dataset.gameCount);
@@ -1729,12 +1895,15 @@ els.jokerConfirm.addEventListener("click",()=>{
       beep(140,.35,"sawtooth");
       addLog(`${rankText(declared.rank)}${declared.suit}として申告したジョーカーはドボンカード。探索中の全員が未確定ポイントを失いました。`);
       activePlayers().forEach(p=>p.pending=0);
-      endRound(
-        deck.length===0
-          ? "最後のジョーカーがドボンカードになりました。山札を使い切ったためゲームを強制終了します。"
-          : "ジョーカーによってドボンカードが出ました。",
-        deck.length===0
-      );
+      if(deck.length===0){
+        showMountBitedAnimation();
+        endRound(
+          `ジョーカーによってドボンカードが出ました。Mount Bited! 山札${currentDeckNumber}/${selectedDeckCount}を使い切りました。`,
+          decksRemaining<=0
+        );
+      }else{
+        endRound("ジョーカーによってドボンカードが出ました。");
+      }
       return;
     }
 
@@ -1871,11 +2040,50 @@ document.getElementById("closeShareBtn").addEventListener("click", ()=>{
   document.getElementById("shareDialog").close();
 });
 
+window.addEventListener("beforeunload",()=>{
+  recordInterruptedGameScore("ページ終了");
+});
+
+window.addEventListener("pagehide",()=>{
+  recordInterruptedGameScore("ページ終了");
+});
+
 resetToStartScreen();
 
 
 
 
+
+function showMountBitedAnimation(){
+  const overlay=document.getElementById("mountBitedOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+
+  try{
+    const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const now=audioCtx.currentTime;
+    [110,165,220,330].forEach((frequency,index)=>{
+      const oscillator=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      oscillator.type=index%2===0 ? "sawtooth" : "triangle";
+      oscillator.frequency.setValueAtTime(frequency,now+index*.08);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        frequency*1.65,
+        now+index*.08+.38
+      );
+      gain.gain.setValueAtTime(.08,now+index*.08);
+      gain.gain.exponentialRampToValueAtTime(.001,now+index*.08+.44);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start(now+index*.08);
+      oscillator.stop(now+index*.08+.46);
+    });
+  }catch(error){}
+
+  setTimeout(()=>overlay.classList.remove("show"),2300);
+}
 
 function showFieldOutAnimation(){
   const overlay=document.getElementById("fieldOutOverlay");
@@ -2040,6 +2248,7 @@ function launchCelebration(){
 
 
 <div id="fieldOutOverlay" aria-live="assertive"><div id="fieldOutText">Field Out!</div></div>
+<div id="mountBitedOverlay" aria-live="assertive"><div id="mountBitedText">Mount Bited!</div></div>
 <div id="gameSetOverlay" aria-live="polite"><div id="gameSetText">Game Set!</div></div>
 <div id="dobonOverlay" aria-live="assertive">
   <div id="dobonText">DoBooooN!!</div>
