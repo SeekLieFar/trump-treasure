@@ -828,7 +828,7 @@ to{transform:scale(1.15)}}
 <dialog id="jokerDialog">
   <div class="dialog-body">
     <h3>ジョーカーの数字とマークを申告</h3>
-    <p>申告したカードとして判定されます。ドボンカードに該当すると、そのゲームは終了します。</p>
+    <p>親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。</p>
     <div class="fields">
       <select id="jokerRank">
         <option value="1">A</option>
@@ -874,6 +874,7 @@ let gameNo = 1;
 let roundEnded = false;
 let wholeGameEnded = false;
 let pendingJoker = false;
+let parentJokerPending = false;
 let waitingForNextDraw = false;
 let bulkDrawing = false;
 let gameStarted = false;
@@ -1122,11 +1123,17 @@ function render(){
   `;
   }).join("");
 
-  const activeCpuChoices=players.filter(p=>p.active && !p.human);
-  const continueCpuCount=activeCpuChoices.filter(p=>p.choice==="continue").length;
-  const foldCpuCount=activeCpuChoices.filter(p=>p.choice==="fold").length;
+  // 「降りる」は、このゲーム中に降りたCPUの累計人数を表示する。
+  // まだ選択確定前でも、現在「降りる」を選んでいるCPUは累計側に含める。
+  // そのため「残る人数＋降りる人数」は常に設定したCPU人数と一致する。
+  const foldedCpuCount=players.filter(
+    p=>!p.human && (!p.active || p.choice==="fold")
+  ).length;
+  const remainingCpuCount=Math.max(0,cpuCount-foldedCpuCount);
+
   if(els.cpuChoiceSummary){
-    els.cpuChoiceSummary.textContent=`残る ${continueCpuCount}人 ／ 降りる ${foldCpuCount}人`;
+    els.cpuChoiceSummary.textContent=
+      `残る ${remainingCpuCount}人 ／ 降りる ${foldedCpuCount}人`;
   }
 
   const decisionHuman=players[0];
@@ -1181,6 +1188,7 @@ function startRound(){
 
   roundEnded=false;
   pendingJoker=false;
+  parentJokerPending=false;
   waitingForNextDraw=false;
   bulkDrawing=false;
   bulkDrawResume=null;
@@ -1192,19 +1200,23 @@ function startRound(){
     p.choice=null;
   });
 
-  // 親カードにはジョーカーを使わない。
-  // ジョーカーを通常カードとして宣言すると、実物の同一カードが山札に残り、
-  // 親カードと今回のカードが同じ表示になるため、山札内の通常札から親を選ぶ。
-  const parentIndex=deck.map((card,index)=>({card,index}))
-    .reverse()
-    .find(item=>!item.card.joker)?.index;
+  // 親カードは通常札・ジョーカーを含む山札全体から引く。
+  parentCard=deck.pop();
 
-  if(parentIndex===undefined){
-    handleDeckExhausted("親カードにできる通常札が残っていません。");
+  // 親カードがジョーカーの場合は、数字とマークの申告後に開始する。
+  if(parentCard.joker){
+    parentJokerPending=true;
+    pendingJoker=true;
+    discard.push({...parentCard, isParent:true});
+    resetDrawnCard();
+    els.parentCard.innerHTML=cardHTML(parentCard);
+    els.message.textContent="親カードがジョーカーです。数字とマークを申告してください。";
+    addLog(`第${gameNo}ゲーム開始。親カードにジョーカーが出ました。`);
+    render();
+
+    if(!els.jokerDialog.open) els.jokerDialog.showModal();
     return;
   }
-
-  parentCard=deck.splice(parentIndex,1)[0];
 
   discard.push({...parentCard, isParent:true});
   resetDrawnCard();
@@ -1623,6 +1635,7 @@ function resetToStartScreen(){
   wholeGameEnded=false;
   roundEnded=false;
   pendingJoker=false;
+  parentJokerPending=false;
   waitingForNextDraw=false;
   bulkDrawing=false;
   bulkDrawResume=null;
@@ -1889,6 +1902,25 @@ els.jokerConfirm.addEventListener("click",()=>{
   lastDrawn=declared;
   els.drawnCard.innerHTML=cardHTML(declared);
   addLog(`あなたはジョーカーを${rankText(rank)}${suit}として申告。`);
+
+  // 親カードとして出たジョーカーの申告処理
+  if(parentJokerPending){
+    parentJokerPending=false;
+    parentCard={...declared, isParent:true};
+    discard[discard.length-1]={...declared, isParent:true};
+    els.parentCard.innerHTML=cardHTML(parentCard);
+    addLog(`親カードのジョーカーを${rankText(rank)}${suit}として確定。`);
+    els.message.textContent="親カードが確定しました。まずカードを1枚引きます。";
+    render();
+
+    if(deck.length===0){
+      handleDeckExhausted("親カードを引いた時点で山札を使い切りました。");
+      return;
+    }
+
+    setTimeout(drawCard,350);
+    return;
+  }
 
   if(bulkDrawing){
     // 一括処理中のジョーカーは得点札ではなく、逆転を狙うカードとして扱う。
