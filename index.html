@@ -1529,14 +1529,20 @@ function endRound(reason, forceWholeGame=false){
 
   const isFieldOut=reason.includes("全員が降りました");
   const isDobon=reason.includes("ドボンカード");
+  const isMountBited=reason.includes("Mount Bited!");
 
   if(isFieldOut){
     showFieldOutAnimation();
   }
 
-  // Game Set! は全ゲーム終了時だけ表示する。
+  // 山札を使い切って全体終了となる場合は、
+  // Mount Bited! の演出が完全に終わってから Game Set! を表示する。
   if(forceWholeGame || gameNo>=maxGames){
-    const gameSetDelay=(isFieldOut || isDobon) ? 2300 : 0;
+    const gameSetDelay=isMountBited
+      ? 2400
+      : (isFieldOut || isDobon)
+        ? 2300
+        : 0;
     endWholeGame(forceWholeGame,gameSetDelay);
   }
 }
