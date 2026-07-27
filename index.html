@@ -130,7 +130,44 @@
     }
 
     .card.red { color: #d63031; }
-    .card.joker { color: #6c3fd6; }
+
+    .card.joker {
+      position: relative;
+      color: #6c3fd6;
+      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .joker-top,
+    .joker-bottom {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      font-size: 1.55rem;
+      line-height: 1;
+      font-weight: 1000;
+      letter-spacing: .03em;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .joker-top {
+      top: 15px;
+    }
+
+    .joker-bottom {
+      bottom: 15px;
+      transform: none;
+    }
+
+    .joker-star {
+      font-size: 4.7rem;
+      line-height: 1;
+      align-self: center;
+      text-shadow: 0 4px 12px rgba(108,63,214,.22);
+    }
 
     .rank { font-size: 2.5rem; line-height: 1; }
     .suit { font-size: 4rem; align-self: center; }
@@ -1262,10 +1299,10 @@ function rankText(rank){ return labels[rank] || String(rank); }
 
 function cardHTML(card){
   if(card.joker){
-    return `<div class="card joker">
-      <div class="rank">JOKER</div>
-      <div class="suit">★</div>
-      <div class="bottom">JOKER</div>
+    return `<div class="card joker notranslate" translate="no">
+      <div class="joker-top">JOKER</div>
+      <div class="joker-star">★</div>
+      <div class="joker-bottom">JOKER</div>
     </div>`;
   }
   return `<div class="card ${card.red?"red":""}">
