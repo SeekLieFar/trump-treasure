@@ -696,6 +696,12 @@ to{transform:scale(1.15)}}
   width:100%;
 }
 
+
+/* Keep animation phrases in English, including during browser auto-translation. */
+.notranslate[translate="no"] {
+  unicode-bidi: isolate;
+}
+
 </style>
 </head>
 <body>
@@ -853,13 +859,13 @@ to{transform:scale(1.15)}}
       <div class="actions">
         <button id="startGameBtn" class="continue">ゲーム開始</button>
         <button id="continueBtn" class="continue" hidden>続ける</button>
-        <button id="foldBtn" class="fold" hidden>降りて得点確定</button>
+        <button id="foldBtn" class="fold" hidden>降りて得点を獲得する</button>
       </div>
 
       <button id="drawNextBtn" class="next-game" hidden>次のカードを引く</button>
       <button id="drawAllSafeBtn" class="next-game" hidden>残りのカードを全部引く</button>
       <button id="nextGameBtn" class="next-game" hidden>次のゲームへ</button>
-      <button id="restartBtn" class="restart">最初からやり直す</button>
+      <button id="restartBtn" class="restart">始めからやり直す</button>
       <button id="rulesBtn" class="restart">ルール説明</button>
       <button id="shareBtn" class="restart">ゲームのURLを共有</button>
       <button id="soundBtn" class="sound-btn">効果音：ON</button>
@@ -925,9 +931,9 @@ const I18N={
     "あなたの順位":"Your rank","あなたの現在得点":"Your current score","現在1位の得点":"Leader score",
     "親カード":"Parent card","今回のカード":"Drawn card","山札の残り安全札":"Safe cards left",
     "山札の残り危険札":"Danger cards left","ドボンの確率":"Bust probability","CPUの選択":"CPU choices",
-    "ゲーム開始":"Start game","続ける":"Continue","降りて得点確定":"Fold and bank score",
+    "ゲーム開始":"Start game","続ける":"Continue","降りて得点を獲得する":"Fold and bank score",
     "次のカードを引く":"Draw next card","残りのカードを全部引く":"Draw all remaining cards",
-    "次のゲームへ":"Next game","最初からやり直す":"Restart","ルール説明":"Rules",
+    "次のゲームへ":"Next game","始めからやり直す":"Restart","ルール説明":"Rules",
     "ゲームのURLを共有":"Share game URL","効果音：ON":"Sound: ON","効果音：OFF":"Sound: OFF",
     "プレイヤー":"Players","全ゲームの捨て札（👑は親カード）":"Discard pile (👑 = parent card)","ログ":"Log",
     "ジョーカーの数字とマークを申告":"Declare Joker rank and suit",
@@ -946,9 +952,9 @@ const I18N={
     "あなたの順位":"你的排名","あなたの現在得点":"你的当前得分","現在1位の得点":"当前第一名得分",
     "親カード":"主牌","今回のカード":"本次抽牌","山札の残り安全札":"剩余安全牌",
     "山札の残り危険札":"剩余危险牌","ドボンの確率":"爆牌概率","CPUの選択":"CPU选择",
-    "ゲーム開始":"开始游戏","続ける":"继续","降りて得点確定":"退出并确认得分",
+    "ゲーム開始":"开始游戏","続ける":"继续","降りて得点を獲得する":"退出并确认得分",
     "次のカードを引く":"抽下一张牌","残りのカードを全部引く":"抽完剩余所有牌",
-    "次のゲームへ":"下一局","最初からやり直す":"重新开始","ルール説明":"规则说明",
+    "次のゲームへ":"下一局","始めからやり直す":"重新开始","ルール説明":"规则说明",
     "ゲームのURLを共有":"分享游戏链接","効果音：ON":"音效：开","効果音：OFF":"音效：关",
     "プレイヤー":"玩家","全ゲームの捨て札（👑は親カード）":"所有局弃牌（👑为主牌）","ログ":"记录",
     "ジョーカーの数字とマークを申告":"指定Joker的点数和花色",
@@ -967,9 +973,9 @@ const I18N={
     "あなたの順位":"내 순위","あなたの現在得点":"내 현재 점수","現在1位の得点":"현재 1위 점수",
     "親カード":"기준 카드","今回のカード":"이번 카드","山札の残り安全札":"남은 안전 카드",
     "山札の残り危険札":"남은 위험 카드","ドボンの確率":"버스트 확률","CPUの選択":"CPU 선택",
-    "ゲーム開始":"게임 시작","続ける":"계속","降りて得点確定":"포기하고 점수 확정",
+    "ゲーム開始":"게임 시작","続ける":"계속","降りて得点を獲得する":"포기하고 점수 확정",
     "次のカードを引く":"다음 카드 뽑기","残りのカードを全部引く":"남은 카드 모두 뽑기",
-    "次のゲームへ":"다음 게임","最初からやり直す":"처음부터 다시","ルール説明":"규칙 설명",
+    "次のゲームへ":"다음 게임","始めからやり直す":"처음부터 다시","ルール説明":"규칙 설명",
     "ゲームのURLを共有":"게임 URL 공유","効果音：ON":"효과음: 켬","効果音：OFF":"효과음: 끔",
     "プレイヤー":"플레이어","全ゲームの捨て札（👑は親カード）":"전체 버린 카드 (👑 = 기준 카드)","ログ":"로그",
     "ジョーカーの数字とマークを申告":"조커 숫자와 무늬 지정",
@@ -1009,11 +1015,11 @@ const I18N={
     "CPUの選択":"Decisiones de CPU",
     "ゲーム開始":"Iniciar partida",
     "続ける":"Continuar",
-    "降りて得点確定":"Retirarse y asegurar puntos",
+    "降りて得点を獲得する":"Retirarse y asegurar puntos",
     "次のカードを引く":"Robar la siguiente carta",
     "残りのカードを全部引く":"Robar todas las cartas restantes",
     "次のゲームへ":"Siguiente partida",
-    "最初からやり直す":"Reiniciar",
+    "始めからやり直す":"Reiniciar",
     "ルール説明":"Reglas",
     "ゲームのURLを共有":"Compartir URL del juego",
     "効果音：ON":"Sonido: ACTIVADO",
@@ -1053,9 +1059,9 @@ const I18N={
     "あなたの順位":"Votre rang","あなたの現在得点":"Votre score actuel","現在1位の得点":"Score du leader",
     "親カード":"Carte de référence","今回のカード":"Carte tirée","山札の残り安全札":"Cartes sûres restantes",
     "山札の残り危険札":"Cartes dangereuses restantes","ドボンの確率":"Risque de défaite","CPUの選択":"Choix des CPU",
-    "ゲーム開始":"Commencer","続ける":"Continuer","降りて得点確定":"Se retirer et valider",
+    "ゲーム開始":"Commencer","続ける":"Continuer","降りて得点を獲得する":"Se retirer et valider",
     "次のカードを引く":"Tirer la carte suivante","残りのカードを全部引く":"Tirer toutes les cartes restantes",
-    "次のゲームへ":"Manche suivante","最初からやり直す":"Recommencer","ルール説明":"Règles",
+    "次のゲームへ":"Manche suivante","始めからやり直す":"Recommencer","ルール説明":"Règles",
     "ゲームのURLを共有":"Partager l’URL du jeu","効果音：ON":"Son : activé","効果音：OFF":"Son : désactivé",
     "プレイヤー":"Joueurs","全ゲームの捨て札（👑は親カード）":"Défausse (👑 = carte de référence)","ログ":"Journal",
     "ジョーカーの数字とマークを申告":"Déclarer la valeur et la couleur du Joker",
@@ -2680,17 +2686,17 @@ function launchCelebration(){
 
 
 
-<div id="fieldOutOverlay" aria-live="assertive"><div id="fieldOutText">Field Out!</div></div>
-<div id="noCardsLeftOverlay" aria-live="assertive"><div id="noCardsLeftText">No Cards Left!</div></div>
-<div id="gameSetOverlay" aria-live="polite"><div id="gameSetText">Game Set!</div></div>
-<div id="dobonOverlay" aria-live="assertive">
-  <div id="dobonText">DoBooooN!!</div>
+<div id="fieldOutOverlay" class="notranslate" translate="no" aria-live="assertive"><div id="fieldOutText" class="notranslate" translate="no">Field Out!</div></div>
+<div id="noCardsLeftOverlay" class="notranslate" translate="no" aria-live="assertive"><div id="noCardsLeftText" class="notranslate" translate="no">No Cards Left!</div></div>
+<div id="gameSetOverlay" class="notranslate" translate="no" aria-live="polite"><div id="gameSetText" class="notranslate" translate="no">Game Set!</div></div>
+<div id="dobonOverlay" class="notranslate" translate="no" aria-live="assertive">
+  <div id="dobonText" class="notranslate" translate="no">DoBooooN!!</div>
 </div>
 
-<div id="winnerOverlay">
+<div id="winnerOverlay" class="notranslate" translate="no">
 <canvas id="fireworksCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
 <div id="confettiContainer" style="position:absolute;inset:0;overflow:hidden;pointer-events:none"></div>
-<h1>Congratulations!!</h1>
+<h1 class="notranslate" translate="no">Congratulations!!</h1>
 </div>
 
 <script>
