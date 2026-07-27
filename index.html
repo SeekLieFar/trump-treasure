@@ -2079,6 +2079,30 @@ function localizedPlayersBadge(){
   return "参加者";
 }
 
+function localizedPointUnit(){
+  if(currentLanguage==="en") return "pts";
+  if(currentLanguage==="zh") return "分";
+  if(currentLanguage==="ko") return "점";
+  if(currentLanguage==="fr") return "pts";
+  if(currentLanguage==="es") return "pts";
+  return "点";
+}
+
+function formatRankingScore(value){
+  const locale=
+    currentLanguage==="en" ? "en-US" :
+    currentLanguage==="zh" ? "zh-CN" :
+    currentLanguage==="ko" ? "ko-KR" :
+    currentLanguage==="fr" ? "fr-FR" :
+    currentLanguage==="es" ? "es-ES" :
+    "ja-JP";
+
+  const number=Number(value).toLocaleString(locale);
+  return currentLanguage==="ja" || currentLanguage==="zh" || currentLanguage==="ko"
+    ? `${number}${localizedPointUnit()}`
+    : `${number} ${localizedPointUnit()}`;
+}
+
 function localizedRecordSetting(){
   const multiplier=scoreMultiplier.toLocaleString(
     currentLanguage==="en" ? "en-US" :
@@ -2120,7 +2144,7 @@ function renderHighScoreBoard(highlightKey="",highlightRank=null){
 
   els.currentRecordSetting.textContent=localizedRecordSetting();
   els.currentHighScore.textContent=currentRanking.length
-    ? `${currentRanking[0].score.toLocaleString("ja-JP")}点`
+    ? formatRankingScore(currentRanking[0].score)
     : localizeText("未記録");
 
   if(currentRanking.length===0){
@@ -2142,7 +2166,7 @@ function renderHighScoreBoard(highlightKey="",highlightRank=null){
         ${currentRanking.map((entry,index)=>`
           <tr class="${highlightKey===currentKey && highlightRank===index+1 ? "high-score-new" : ""}">
             <td>${localizeText(`${index+1}位`)}</td>
-            <td>${localizeText(`${entry.score.toLocaleString("ja-JP")}点`)}</td>
+            <td>${formatRankingScore(entry.score)}</td>
             <td>${entry.recordedAt
               ? new Date(entry.recordedAt).toLocaleString("ja-JP")
               : localizeText("旧記録")}</td>
