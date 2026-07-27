@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trump Treasure</title>
+
+  <meta name="theme-color" content="#0d1422" />
+  <meta name="application-name" content="Trump Treasure" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Trump Treasure" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
+
+  <style>
+    :root {
+      --bg: #0d1422;
+      --panel: #182237;
+      --panel2: #24314d;
+      --text: #f5f7fb;
+      --muted: #aab5ca;
+      --accent: #f3c969;
+      --good: #55d98b;
+      --bad: #ff6f6f;
+      --blue: #65aef2;
+      --purple: #b68cff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 18px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(101,174,242,.14), transparent 35%),
+        radial-gradient(circle at top right, rgba(182,140,255,.12), transparent 28%),
+        linear-gradient(160deg, #080d17, var(--bg));
+    }
+
+    .app { max-width: 1100px; margin: 0 auto; }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+    }
+
+    .subtitle { color: var(--muted); margin-bottom: 18px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: rgba(24,34,55,.95);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      background: var(--panel2);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .message {
+      min-height: 32px;
+      text-align: center;
+      color: var(--accent);
+      font-weight: 800;
+      margin: 6px 0 10px;
+    }
+
+    .cards {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      min-height: 260px;
+    }
+
+    .card-wrap { text-align: center; }
+
+    .label {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .card {
+      width: 150px;
+      height: 210px;
+      border-radius: 17px;
+      background: #fff;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px;
+      font-weight: 900;
+      box-shadow: 0 18px 38px rgba(0,0,0,.32);
+    }
+
+    .card.red { color: #d63031; }
+    .card.joker { color: #6c3fd6; }
+
+    .rank { font-size: 2.5rem; line-height: 1; }
+    .suit { font-size: 4rem; align-self: center; }
+    .bottom { align-self: flex-end; transform: rotate(180deg); font-size: 2rem; }
+
+    .card-back {
+      width: 150px;
+      height: 210px;
+      border-radius: 17px;
+      background: repeating-linear-gradient(45deg,#24416f,#24416f 12px,#172d51 12px,#172d51 24px);
+      border: 4px solid #dce7ff;
+      display: grid;
+      place-items: center;
+      font-size: 4rem;
+      box-shadow: 0 18px 38px rgba(0,0,0,.32);
+    }
+
+    .hazard-info {
+      margin: 14px auto 0;
+      max-width: 680px;
+      background: #111a2b;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 15px 12px;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    .continue { background: var(--good); color: #10251a; }
+    .fold { background: var(--accent); color: #302406; }
+    .next-game { background: var(--blue); color: #0d2234; width: 100%; margin-top: 12px; }
+    .restart { background: #f0f3f6; color: #1d2735; width: 100%; margin-top: 10px; }
+
+    .players { display: grid; gap: 10px; }
+
+    .player {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 5px 10px;
+      background: var(--panel2);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .player.inactive { opacity: .58; border: 1px dashed rgba(255,255,255,.25); }
+
+    .name { font-weight: 900; }
+    .score { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .sub {
+      grid-column: 1/-1;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .discard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .mini {
+      min-width: 40px;
+      text-align: center;
+      background: #fff;
+      color: #111;
+      padding: 5px 7px;
+      border-radius: 7px;
+      font-weight: 900;
+    }
+
+    .mini.red { color: #d63031; }
+    .mini.joker { color: #6c3fd6; }
+
+    .log {
+      max-height: 340px;
+      overflow-y: auto;
+      background: #0f1727;
+      border-radius: 12px;
+      padding: 12px;
+      line-height: 1.55;
+      font-size: .92rem;
+    }
+
+    .log p {
+      margin: 0 0 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    dialog {
+      border: 0;
+      border-radius: 18px;
+      padding: 0;
+      background: var(--panel);
+      color: var(--text);
+      width: min(92vw, 430px);
+      box-shadow: 0 25px 80px rgba(0,0,0,.5);
+    }
+
+    dialog::backdrop { background: rgba(0,0,0,.65); }
+
+    .dialog-body { padding: 20px; }
+    .dialog-body h3 { margin-top: 0; }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: #111a2b;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .confirm { background: var(--purple); color: #201237; width: 100%; }
+
+
+    .hazard-cards { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .hazard-chip { background:#3a2030; color:#ffd6df; border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:5px 8px; font-weight:800; }
+    .prob-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+    .prob-box { background:#111a2b; border-radius:12px; padding:10px; text-align:center; }
+    .prob-box strong { display:block; font-size:1.15rem; margin-top:3px; }
+    .settings { margin-top:14px; background:#111a2b; border-radius:12px; padding:12px; }
+    .settings-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .settings label { color:var(--muted); font-weight:700; }
+    .settings select { width:auto; min-width:150px; }
+    .cpu-style-top { margin: 0 0 14px; }
+    .cpu-choice-summary-row { justify-content:space-between; }
+    .cpu-choice-summary-label { color:var(--muted); font-weight:800; }
+    #cpuChoiceSummary { color:var(--accent); font-size:1.05rem; }
+    .draw-flash { animation: drawFlash .55s ease; }
+    .hazard-flash { animation: hazardShake .6s ease; }
+    @keyframes drawFlash { 0%{transform:scale(.75) rotate(-6deg);opacity:.15} 70%{transform:scale(1.05) rotate(2deg);opacity:1} 100%{transform:scale(1) rotate(0)} }
+    @keyframes hazardShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-7px)} 80%{transform:translateX(7px)} }
+    .sound-btn { background:#dfe7ff; color:#17233a; width:100%; margin-top:10px; }
+
+    @media (max-width: 780px) {
+      .grid { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr; }
+      .card, .card-back { width: 130px; height: 182px; }
+    }
+  
+    .share-textarea {
+      width: 100%;
+      min-height: 240px;
+      resize: vertical;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: #0f1727;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: .8rem;
+      line-height: 1.5;
+    }
+
+    .share-status {
+      min-height: 26px;
+      margin: 10px 0;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .share-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .share-actions { grid-template-columns: 1fr; }
+    }
+
+  
+    .game-settings {
+      margin: 18px 0;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .setting-label {
+      min-width: 92px;
+      font-weight: 800;
+    }
+    .setting-btn {
+      width: auto;
+      min-width: 48px;
+      padding: 8px 11px;
+      border-radius: 9px;
+      background: #263654;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.16);
+      cursor: pointer;
+    }
+    .setting-btn.selected {
+      background: #f2c94c;
+      color: #172033;
+      border-color: #f2c94c;
+      box-shadow: 0 0 0 2px rgba(242,201,76,.2);
+    }
+    .settings-note {
+      margin: 8px 0 0;
+      opacity: .78;
+      font-size: .9rem;
+    }
+
+    .deck-count-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .deck-count-row .setting-label {
+      min-width: 0;
+      width: 100%;
+    }
+
+    #deckCountButtons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+
+#winnerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9999}
+#winnerOverlay.show{display:flex}
+#winnerOverlay h1{font-size:56px;color:#ffd54a;margin:0 0 12px;text-align:center}
+#winnerOverlay #fireworksCanvas{display:block}#confettiContainer span{position:absolute;font-size:22px;animation:fall 3s linear forwards}@keyframes fall{from{transform:translateY(-10vh) rotate(0)}to{transform:translateY(110vh) rotate(720deg)}}
+to{transform:scale(1.15)}}
+
+
+    .live-scoreboard{
+      margin:14px 0 10px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      text-align:center;
+    }
+    .live-score-item{
+      padding:10px 8px;
+      border-radius:10px;
+      background:rgba(0,0,0,.18);
+    }
+    .live-score-label{
+      font-size:.82rem;
+      opacity:.78;
+      margin-bottom:4px;
+    }
+    .live-score-value{
+      font-size:1.15rem;
+      font-weight:900;
+    }
+    @media (max-width:620px){
+      .live-scoreboard{grid-template-columns:1fr;}
+    }
+
+
+#dobonOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at center, rgba(255,65,65,.35), rgba(60,0,0,.92) 68%);
+}
+#dobonOverlay.show{
+  display:flex;
+  animation:dobonScreenShake .58s ease-in-out 2;
+}
+#dobonText{
+  font-size:clamp(72px,18vw,220px);
+  line-height:1;
+  font-weight:1000;
+  letter-spacing:.04em;
+  color:#fff;
+  -webkit-text-stroke:clamp(2px,.6vw,8px) #b00000;
+  text-shadow:
+    0 0 12px #fff,
+    0 0 30px #ff2020,
+    0 0 70px #ff0000,
+    10px 12px 0 rgba(0,0,0,.45);
+  transform:scale(.1) rotate(-8deg);
+}
+#dobonOverlay.show #dobonText{
+  animation:dobonBurst 1.7s cubic-bezier(.12,.75,.18,1) forwards;
+}
+#dobonOverlay::before,
+#dobonOverlay::after{
+  content:"";
+  position:absolute;
+  width:180vmax;
+  height:18px;
+  background:rgba(255,255,255,.75);
+  box-shadow:
+    0 -45px 0 rgba(255,40,40,.8),
+    0 45px 0 rgba(255,220,0,.65);
+}
+#dobonOverlay::before{transform:rotate(28deg)}
+#dobonOverlay::after{transform:rotate(-28deg)}
+@keyframes dobonBurst{
+  0%{transform:scale(.08) rotate(-15deg);opacity:0}
+  28%{transform:scale(1.28) rotate(4deg);opacity:1}
+  48%{transform:scale(.94) rotate(-2deg)}
+  68%{transform:scale(1.08) rotate(1deg)}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes dobonScreenShake{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-14px,8px)}
+  40%{transform:translate(12px,-9px)}
+  60%{transform:translate(-9px,-5px)}
+  80%{transform:translate(10px,7px)}
+}
+
+
+#gameSetOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9500;pointer-events:none;background:rgba(0,0,0,.18)}
+#gameSetOverlay.show{display:flex;animation:gameSetFade 1.65s ease forwards}
+#gameSetText{padding:.28em .62em;border:2px solid rgba(255,255,255,.75);border-radius:18px;background:rgba(12,20,35,.78);color:#fff;font-size:clamp(44px,10vw,110px);font-weight:900;letter-spacing:.07em;text-shadow:0 3px 14px rgba(0,0,0,.55);transform:scale(.86);opacity:0}
+#gameSetOverlay.show #gameSetText{animation:gameSetTextIn 1.55s ease forwards}
+@keyframes gameSetFade{0%{opacity:0}15%,72%{opacity:1}100%{opacity:0}}
+@keyframes gameSetTextIn{0%{opacity:0;transform:scale(.86) translateY(12px)}22%{opacity:1;transform:scale(1) translateY(0)}76%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(.98) translateY(-6px)}}
+
+
+
+#noCardsLeftOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9700;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at center, rgba(255,196,68,.30), rgba(22,12,2,.92) 72%);
+}
+#noCardsLeftOverlay.show{
+  display:flex;
+  animation:noCardsLeftScreen 2.25s ease forwards;
+}
+#noCardsLeftText{
+  position:relative;
+  z-index:2;
+  padding:.24em .52em;
+  border:4px solid rgba(255,218,100,.95);
+  border-radius:22px;
+  background:rgba(34,20,5,.84);
+  color:#fff4c8;
+  font-size:clamp(52px,12vw,145px);
+  font-weight:1000;
+  letter-spacing:.045em;
+  text-align:center;
+  text-shadow:
+    0 0 14px rgba(255,255,255,.9),
+    0 0 38px rgba(255,190,50,.95),
+    0 10px 20px rgba(0,0,0,.55);
+  opacity:0;
+  transform:scale(.28) rotate(-6deg);
+}
+#noCardsLeftOverlay.show #noCardsLeftText{
+  animation:noCardsLeftBurst 2s cubic-bezier(.12,.78,.18,1) forwards;
+}
+#noCardsLeftOverlay::before,
+#noCardsLeftOverlay::after{
+  content:"";
+  position:absolute;
+  width:160vmax;
+  height:14px;
+  background:rgba(255,245,200,.85);
+  box-shadow:
+    0 -58px 0 rgba(255,177,35,.85),
+    0 58px 0 rgba(255,222,95,.72);
+  opacity:0;
+}
+#noCardsLeftOverlay.show::before{
+  transform:rotate(30deg);
+  animation:noCardsLeftLines 1.6s ease-out forwards;
+}
+#noCardsLeftOverlay.show::after{
+  transform:rotate(-30deg);
+  animation:noCardsLeftLines 1.6s .08s ease-out forwards;
+}
+@keyframes noCardsLeftScreen{
+  0%{opacity:0}
+  12%,76%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes noCardsLeftBurst{
+  0%{opacity:0;transform:scale(.28) rotate(-6deg)}
+  27%{opacity:1;transform:scale(1.2) rotate(3deg)}
+  48%{transform:scale(.95) rotate(-1deg)}
+  70%{transform:scale(1.04) rotate(0)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes noCardsLeftLines{
+  0%{opacity:0;scale:.22}
+  34%{opacity:1}
+  100%{opacity:0;scale:1.28}
+}
+
+#fieldOutOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9600;
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at center, rgba(65,120,255,.28), rgba(5,12,35,.88) 72%);
+}
+#fieldOutOverlay.show{
+  display:flex;
+  animation:fieldOutScreen 2.15s ease forwards;
+}
+#fieldOutText{
+  position:relative;
+  z-index:2;
+  padding:.22em .5em;
+  border:3px solid rgba(255,255,255,.9);
+  border-radius:22px;
+  background:rgba(10,22,48,.78);
+  color:#fff;
+  font-size:clamp(58px,13vw,150px);
+  font-weight:1000;
+  letter-spacing:.06em;
+  text-shadow:
+    0 0 14px rgba(255,255,255,.9),
+    0 0 36px rgba(70,140,255,.95),
+    0 8px 18px rgba(0,0,0,.5);
+  opacity:0;
+  transform:scale(.35) rotate(-7deg);
+}
+#fieldOutOverlay.show #fieldOutText{
+  animation:fieldOutBurst 1.95s cubic-bezier(.12,.78,.18,1) forwards;
+}
+#fieldOutOverlay::before,
+#fieldOutOverlay::after{
+  content:"";
+  position:absolute;
+  width:150vmax;
+  height:12px;
+  background:rgba(255,255,255,.8);
+  box-shadow:
+    0 -52px 0 rgba(70,140,255,.8),
+    0 52px 0 rgba(120,210,255,.65);
+  opacity:0;
+}
+#fieldOutOverlay.show::before{
+  transform:rotate(24deg);
+  animation:fieldOutLines 1.5s ease-out forwards;
+}
+#fieldOutOverlay.show::after{
+  transform:rotate(-24deg);
+  animation:fieldOutLines 1.5s .08s ease-out forwards;
+}
+@keyframes fieldOutScreen{
+  0%{opacity:0}
+  12%,76%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes fieldOutBurst{
+  0%{opacity:0;transform:scale(.35) rotate(-7deg)}
+  26%{opacity:1;transform:scale(1.22) rotate(3deg)}
+  46%{transform:scale(.94) rotate(-1deg)}
+  68%{transform:scale(1.04) rotate(0)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes fieldOutLines{
+  0%{opacity:0;scale:.25}
+  35%{opacity:1}
+  100%{opacity:0;scale:1.25}
+}
+
+
+.high-score-board{margin:16px 0 22px;padding:18px;border:1px solid rgba(150,180,255,.22);border-radius:20px;background:linear-gradient(145deg,rgba(27,44,78,.96),rgba(17,29,54,.96));box-shadow:0 12px 28px rgba(0,0,0,.24)}
+.high-score-board h2{margin:0 0 12px;font-size:1.25rem}
+.high-score-current{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.high-score-box{padding:13px;border-radius:14px;background:rgba(7,16,34,.55)}
+.high-score-box span{display:block;color:#b9c5df;font-size:.82rem;margin-bottom:5px}
+.high-score-box strong{display:block;font-size:1.12rem;overflow-wrap:anywhere}
+.high-score-table-wrap{max-height:520px;overflow:auto;border-radius:14px;border:1px solid rgba(255,255,255,.08)}
+.high-score-table{width:100%;border-collapse:collapse;min-width:520px;font-size:.88rem}
+.high-score-table th,.high-score-table td{padding:10px 8px;text-align:right;border-bottom:1px solid rgba(255,255,255,.07);white-space:nowrap}
+.high-score-table th:first-child,.high-score-table td:first-child{text-align:left}
+.high-score-table thead th{position:sticky;top:0;z-index:1;background:#182944}
+.high-score-empty{padding:18px;text-align:center;color:#aebbd4}
+.high-score-new{color:#ffd86b;font-weight:900}
+@media(max-width:600px){.high-score-current{grid-template-columns:1fr}.high-score-board{padding:14px}}
+
+
+.language-panel{
+  margin:0 0 18px;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+}
+.language-panel label{
+  display:block;
+  margin-bottom:7px;
+  color:var(--muted);
+  font-weight:900;
+}
+.language-panel select{
+  width:100%;
+}
+
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>Trump Treasure</h1>
+  <div class="subtitle">ドボンカードを避けながら、降りるタイミングを見極めるカードゲーム</div>
+
+  <section class="language-panel" aria-label="Language">
+    <label for="languageSelect">🌐 Language</label>
+    <select id="languageSelect">
+      <option value="ja" selected>日本語</option>
+      <option value="en">English</option>
+      <option value="zh">中文</option>
+      <option value="ko">한국어</option>
+      <option value="fr">Français</option>
+      <option value="es">Español</option>
+    </select>
+  </section>
+
+  <section class="game-settings" aria-label="ゲーム設定">
+    <div class="setting-row">
+      <span class="setting-label">CPU人数</span>
+      <div id="cpuCountButtons">
+        <button class="setting-btn selected" data-cpu-count="3">3</button>
+        <button class="setting-btn" data-cpu-count="4">4</button>
+        <button class="setting-btn" data-cpu-count="5">5</button>
+        <button class="setting-btn" data-cpu-count="6">6</button>
+        <button class="setting-btn" data-cpu-count="7">7</button>
+        <button class="setting-btn" data-cpu-count="8">8</button>
+        <button class="setting-btn" data-cpu-count="9">9</button>
+        <button class="setting-btn" data-cpu-count="19">19</button>
+        <button class="setting-btn" data-cpu-count="49">49</button>
+        <button class="setting-btn" data-cpu-count="99">99</button>
+      </div>
+    </div>
+    <div class="setting-row deck-count-row">
+      <span class="setting-label">山札の数</span>
+      <div id="deckCountButtons">
+        <button class="setting-btn selected" data-deck-count="1">1</button>
+        <button class="setting-btn" data-deck-count="2">2</button>
+        <button class="setting-btn" data-deck-count="3">3</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">ゲーム数</span>
+      <div id="gameCountButtons">
+        <button class="setting-btn" data-game-count="3">3</button>
+        <button class="setting-btn" data-game-count="4">4</button>
+        <button class="setting-btn selected" data-game-count="5">5</button>
+        <button class="setting-btn" data-game-count="6">6</button>
+        <button class="setting-btn" data-game-count="7">7</button>
+        <button class="setting-btn" data-game-count="8">8</button>
+        <button class="setting-btn" data-game-count="9">9</button>
+        <button class="setting-btn" data-game-count="10">10</button>
+        <button class="setting-btn" data-game-count="11">11</button>
+        <button class="setting-btn" data-game-count="12">12</button>
+        <button class="setting-btn" data-game-count="15">15</button>
+        <button class="setting-btn" data-game-count="20">20</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">得点倍率</span>
+      <div id="scoreMultiplierButtons">
+        <button class="setting-btn" data-score-multiplier="100">×100</button>
+        <button class="setting-btn" data-score-multiplier="500">×500</button>
+        <button class="setting-btn selected" data-score-multiplier="1000">×1000</button>
+        <button class="setting-btn" data-score-multiplier="2000">×2000</button>
+        <button class="setting-btn" data-score-multiplier="5000">×5000</button>
+        <button class="setting-btn" data-score-multiplier="10000">×10000</button>
+      </div>
+    </div>
+    <p class="settings-note">設定を変更すると、確認後に最初から開始します。山札を複数選んだ場合、1つの山札を使い切るたびにそのゲームを終了します。</p>
+  </section>
+
+  <section class="high-score-board" aria-label="ハイスコアランキング">
+    <h2 id="highScoreTitle">最高スコアランキング（10,000位まで保存）</h2>
+    <div class="high-score-current">
+      <div class="high-score-box">
+        <span>現在の設定</span>
+        <strong id="currentRecordSetting">CPU 3人・山札1・5ゲーム・×1,000</strong>
+      </div>
+      <div class="high-score-box">
+        <span id="bestScoreLabel">この設定での1位スコア</span>
+        <strong id="currentHighScore">未記録</strong>
+      </div>
+    </div>
+    <div id="highScoreTableWrap" class="high-score-table-wrap">
+      <div class="high-score-empty">この設定では、まだランキング記録がありません。</div>
+    </div>
+  </section>
+
+
+
+  <div class="grid">
+    <section class="panel">
+      <div class="status-row">
+        <div class="badge">ゲーム <span id="gameNo">1</span>/<span id="maxGamesDisplay">5</span></div>
+        <div class="badge">山札 <span id="deckNoDisplay">1</span>/<span id="deckTotalDisplay">1</span>・<span id="deckCount">0枚</span></div>
+        <div class="badge"><span id="playersBadgeLabel">参加者</span> <span id="activeCount">4</span><span id="playersBadgeUnit">人</span></div>
+      </div>
+
+      <div class="message" id="message"></div>
+
+      <div class="settings cpu-style-top">
+        <div class="settings-row">
+          <label for="cpuStyle">CPU性格</label>
+          <select id="cpuStyle">
+            <option value="cautious">慎重</option>
+            <option value="normal" selected>普通</option>
+            <option value="bold">強気</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="live-scoreboard" aria-live="polite">
+        <div class="live-score-item">
+          <div class="live-score-label">あなたの順位</div>
+          <div id="humanRankDisplay" class="live-score-value">1位</div>
+        </div>
+        <div class="live-score-item">
+          <div class="live-score-label">あなたの現在得点</div>
+          <div id="humanScoreDisplay" class="live-score-value">0点</div>
+        </div>
+        <div class="live-score-item">
+          <div class="live-score-label">現在1位の得点</div>
+          <div id="leaderScoreDisplay" class="live-score-value">0点</div>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card-wrap">
+          <div class="label">親カード</div>
+          <div id="parentCard"></div>
+        </div>
+        <div class="card-wrap">
+          <div class="label">今回のカード</div>
+          <div id="drawnCard" class="card-back">?</div>
+        </div>
+      </div>
+
+      <div class="hazard-info" id="hazardInfo"></div>
+      <div id="hazardCards" class="hazard-cards"></div>
+      <div class="prob-grid">
+        <div class="prob-box">山札の残り安全札<strong id="safeCount">0枚</strong></div>
+        <div class="prob-box">山札の残り危険札<strong id="dangerCount">0枚</strong></div>
+        <div class="prob-box">ドボンの確率<strong id="dangerRate">0%</strong></div>
+      </div>
+      <div class="settings">
+        <div class="settings-row cpu-choice-summary-row">
+          <span class="cpu-choice-summary-label">CPUの選択</span>
+          <strong id="cpuChoiceSummary">残る 0人 ／ 降りる 0人</strong>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="startGameBtn" class="continue">ゲーム開始</button>
+        <button id="continueBtn" class="continue" hidden>続ける</button>
+        <button id="foldBtn" class="fold" hidden>降りて得点確定</button>
+      </div>
+
+      <button id="drawNextBtn" class="next-game" hidden>次のカードを引く</button>
+      <button id="drawAllSafeBtn" class="next-game" hidden>残りのカードを全部引く</button>
+      <button id="nextGameBtn" class="next-game" hidden>次のゲームへ</button>
+      <button id="restartBtn" class="restart">最初からやり直す</button>
+      <button id="rulesBtn" class="restart">ルール説明</button>
+      <button id="shareBtn" class="restart">ゲームのURLを共有</button>
+      <button id="soundBtn" class="sound-btn">効果音：ON</button>
+    </section>
+
+    <aside class="panel">
+      <h2>プレイヤー</h2>
+      <div id="players" class="players"></div>
+
+      <h2>全ゲームの捨て札（👑は親カード）</h2>
+      <div id="discard" class="discard"></div>
+
+      <h2>ログ</h2>
+      <div id="log" class="log"></div>
+    </aside>
+  </div>
+</main>
+
+<dialog id="jokerDialog">
+  <div class="dialog-body">
+    <h3>ジョーカーの数字とマークを申告</h3>
+    <p>親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。</p>
+    <div class="fields">
+      <select id="jokerRank">
+        <option value="1">A</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">J</option>
+        <option value="12">Q</option>
+        <option value="13" selected>K</option>
+      </select>
+      <select id="jokerSuit">
+        <option value="♠">スペード</option>
+        <option value="♥">ハート</option>
+        <option value="♦">ダイヤ</option>
+        <option value="♣">クラブ</option>
+      </select>
+    </div>
+    <button class="confirm" id="jokerConfirm">このカードとして申告</button>
+  </div>
+</dialog>
+
+<script>
+const LANGUAGE_STORAGE_KEY="trumpTreasureLanguageV3DefaultJapanese";
+let currentLanguage=localStorage.getItem(LANGUAGE_STORAGE_KEY) ?? "ja";
+
+const I18N={
+  ja:{},
+  en:{
+    "ドボンカードを避けながら、降りるタイミングを見極めるカードゲーム":"Avoid bust cards and decide the right time to fold.",
+    "ゲーム設定":"Game settings","CPU人数":"CPU players","山札の数":"Number of decks","ゲーム数":"Games",
+    "得点倍率":"Score multiplier","最高スコアランキング（10,000位まで保存）":"High-score ranking (top 10,000 saved)",
+    "現在の設定":"Current settings","この設定での1位スコア":"Best score for these settings",
+    "この設定では、まだランキング記録がありません。":"No ranking records for these settings yet.",
+    "ゲーム":"Game","山札":"Deck","参加者":"Players","CPU性格":"CPU style","慎重":"Cautious","普通":"Normal","強気":"Bold",
+    "あなたの順位":"Your rank","あなたの現在得点":"Your current score","現在1位の得点":"Leader score",
+    "親カード":"Parent card","今回のカード":"Drawn card","山札の残り安全札":"Safe cards left",
+    "山札の残り危険札":"Danger cards left","ドボンの確率":"Bust probability","CPUの選択":"CPU choices",
+    "ゲーム開始":"Start game","続ける":"Continue","降りて得点確定":"Fold and bank score",
+    "次のカードを引く":"Draw next card","残りのカードを全部引く":"Draw all remaining cards",
+    "次のゲームへ":"Next game","最初からやり直す":"Restart","ルール説明":"Rules",
+    "ゲームのURLを共有":"Share game URL","効果音：ON":"Sound: ON","効果音：OFF":"Sound: OFF",
+    "プレイヤー":"Players","全ゲームの捨て札（👑は親カード）":"Discard pile (👑 = parent card)","ログ":"Log",
+    "ジョーカーの数字とマークを申告":"Declare Joker rank and suit",
+    "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"Treat the parent or drawn Joker as the declared rank and suit.",
+    "このカードとして申告":"Confirm declaration","スペード":"Spades","ハート":"Hearts","ダイヤ":"Diamonds","クラブ":"Clubs",
+    "ルール":"Rules","閉じる":"Close","順位":"Rank","スコア":"Score","記録日時":"Recorded at",
+    "未記録":"No record","旧記録":"Previous record","あなた":"You","設定を変更すると、確認後に最初から開始します。山札を複数選んだ場合、1つの山札を使い切るたびにそのゲームを終了します。":"Changing a setting restarts the match after confirmation. If multiple decks are selected, each game ends when one deck is exhausted.","現在得点：":"Current score: ","確定：":"Banked: ","未確定：":"Pending: ","宣言：":"Choice: ","このゲームは離脱済み":"Folded in this game","ゲームは離脱済み":"Folded in this game","人":" players","枚":" cards"
+  },
+  zh:{
+    "ドボンカードを避けながら、降りるタイミングを見極めるカードゲーム":"避开爆牌，并判断何时退出。",
+    "ゲーム設定":"游戏设置","CPU人数":"CPU人数","山札の数":"牌组数量","ゲーム数":"局数",
+    "得点倍率":"得分倍率","最高スコアランキング（10,000位まで保存）":"最高分排行榜（保存前10,000名）",
+    "現在の設定":"当前设置","この設定での1位スコア":"此设置下最高分",
+    "この設定では、まだランキング記録がありません。":"此设置下暂无排行榜记录。",
+    "ゲーム":"局","山札":"牌组","参加者":"参与者","CPU性格":"CPU风格","慎重":"谨慎","普通":"普通","強気":"激进",
+    "あなたの順位":"你的排名","あなたの現在得点":"你的当前得分","現在1位の得点":"当前第一名得分",
+    "親カード":"主牌","今回のカード":"本次抽牌","山札の残り安全札":"剩余安全牌",
+    "山札の残り危険札":"剩余危险牌","ドボンの確率":"爆牌概率","CPUの選択":"CPU选择",
+    "ゲーム開始":"开始游戏","続ける":"继续","降りて得点確定":"退出并确认得分",
+    "次のカードを引く":"抽下一张牌","残りのカードを全部引く":"抽完剩余所有牌",
+    "次のゲームへ":"下一局","最初からやり直す":"重新开始","ルール説明":"规则说明",
+    "ゲームのURLを共有":"分享游戏链接","効果音：ON":"音效：开","効果音：OFF":"音效：关",
+    "プレイヤー":"玩家","全ゲームの捨て札（👑は親カード）":"所有局弃牌（👑为主牌）","ログ":"记录",
+    "ジョーカーの数字とマークを申告":"指定Joker的点数和花色",
+    "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"主牌或抽到的Joker按指定点数和花色处理。",
+    "このカードとして申告":"确认指定","スペード":"黑桃","ハート":"红桃","ダイヤ":"方块","クラブ":"梅花",
+    "ルール":"规则","閉じる":"关闭","順位":"排名","スコア":"得分","記録日時":"记录时间",
+    "未記録":"无记录","旧記録":"旧记录","あなた":"你","設定を変更すると、確認後に最初から開始します。山札を複数選んだ場合、1つの山札を使い切るたびにそのゲームを終了します。":"更改设置并确认后将重新开始。选择多副牌时，每用完一副牌，本局结束。","現在得点：":"当前得分：","確定：":"已确认：","未確定：":"未确认：","宣言：":"选择：","このゲームは離脱済み":"本局已退出","ゲームは離脱済み":"本局已退出","枚":"张"
+  },
+  ko:{
+    "ドボンカードを避けながら、降りるタイミングを見極めるカードゲーム":"버스트 카드를 피하며 멈출 타이밍을 판단하세요.",
+    "ゲーム設定":"게임 설정","CPU人数":"CPU 인원","山札の数":"덱 수","ゲーム数":"게임 수",
+    "得点倍率":"점수 배율","最高スコアランキング（10,000位まで保存）":"최고 점수 랭킹 (10,000위까지 저장)",
+    "現在の設定":"현재 설정","この設定での1位スコア":"이 설정의 최고 점수",
+    "この設定では、まだランキング記録がありません。":"이 설정에는 아직 랭킹 기록이 없습니다.",
+    "ゲーム":"게임","山札":"덱","参加者":"참가자","CPU性格":"CPU 성향","慎重":"신중","普通":"보통","強気":"공격적",
+    "あなたの順位":"내 순위","あなたの現在得点":"내 현재 점수","現在1位の得点":"현재 1위 점수",
+    "親カード":"기준 카드","今回のカード":"이번 카드","山札の残り安全札":"남은 안전 카드",
+    "山札の残り危険札":"남은 위험 카드","ドボンの確率":"버스트 확률","CPUの選択":"CPU 선택",
+    "ゲーム開始":"게임 시작","続ける":"계속","降りて得点確定":"포기하고 점수 확정",
+    "次のカードを引く":"다음 카드 뽑기","残りのカードを全部引く":"남은 카드 모두 뽑기",
+    "次のゲームへ":"다음 게임","最初からやり直す":"처음부터 다시","ルール説明":"규칙 설명",
+    "ゲームのURLを共有":"게임 URL 공유","効果音：ON":"효과음: 켬","効果音：OFF":"효과음: 끔",
+    "プレイヤー":"플레이어","全ゲームの捨て札（👑は親カード）":"전체 버린 카드 (👑 = 기준 카드)","ログ":"로그",
+    "ジョーカーの数字とマークを申告":"조커 숫자와 무늬 지정",
+    "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"기준 카드 또는 뽑은 조커를 지정한 숫자와 무늬로 처리합니다.",
+    "このカードとして申告":"이 카드로 지정","スペード":"스페이드","ハート":"하트","ダイヤ":"다이아몬드","クラブ":"클럽",
+    "ルール":"규칙","閉じる":"닫기","順位":"순위","スコア":"점수","記録日時":"기록 일시",
+    "未記録":"기록 없음","旧記録":"이전 기록","あなた":"나","設定を変更すると、確認後に最初から開始します。山札を複数選んだ場合、1つの山札を使い切るたびにそのゲームを終了します。":"설정을 변경하고 확인하면 처음부터 다시 시작합니다. 여러 덱을 선택하면 덱 하나를 모두 사용할 때마다 해당 게임이 종료됩니다.","現在得点：":"현재 점수: ","確定：":"확정: ","未確定：":"미확정: ","宣言：":"선택: ","このゲームは離脱済み":"이 게임에서 포기함","ゲームは離脱済み":"이 게임에서 포기함","枚":"장"
+  },
+
+  es:{
+    "ドボンカードを避けながら、降りるタイミングを見極めるカードゲーム":"Evita las cartas de eliminación y elige el momento adecuado para retirarte.",
+    "ゲーム設定":"Ajustes del juego",
+    "CPU人数":"Jugadores CPU",
+    "山札の数":"Número de mazos",
+    "ゲーム数":"Partidas",
+    "得点倍率":"Multiplicador de puntos",
+    "設定を変更すると、確認後に最初から開始します。山札を複数選んだ場合、1つの山札を使い切るたびにそのゲームを終了します。":"Al cambiar un ajuste y confirmarlo, la partida comenzará de nuevo. Si seleccionas varios mazos, la partida actual terminará cada vez que se agote uno.",
+    "最高スコアランキング（10,000位まで保存）":"Clasificación de puntuaciones (se guardan las 10.000 mejores)",
+    "現在の設定":"Ajustes actuales",
+    "この設定での1位スコア":"Mejor puntuación con estos ajustes",
+    "この設定では、まだランキング記録がありません。":"Todavía no hay puntuaciones registradas con estos ajustes.",
+    "ゲーム":"Partida",
+    "山札":"Mazo",
+    "参加者":"Jugadores",
+    "CPU性格":"Estilo de CPU",
+    "慎重":"Prudente",
+    "普通":"Normal",
+    "強気":"Agresivo",
+    "あなたの順位":"Tu posición",
+    "あなたの現在得点":"Tu puntuación actual",
+    "現在1位の得点":"Puntuación del líder",
+    "親カード":"Carta principal",
+    "今回のカード":"Carta actual",
+    "山札の残り安全札":"Cartas seguras restantes",
+    "山札の残り危険札":"Cartas peligrosas restantes",
+    "ドボンの確率":"Probabilidad de eliminación",
+    "CPUの選択":"Decisiones de CPU",
+    "ゲーム開始":"Iniciar partida",
+    "続ける":"Continuar",
+    "降りて得点確定":"Retirarse y asegurar puntos",
+    "次のカードを引く":"Robar la siguiente carta",
+    "残りのカードを全部引く":"Robar todas las cartas restantes",
+    "次のゲームへ":"Siguiente partida",
+    "最初からやり直す":"Reiniciar",
+    "ルール説明":"Reglas",
+    "ゲームのURLを共有":"Compartir URL del juego",
+    "効果音：ON":"Sonido: ACTIVADO",
+    "効果音：OFF":"Sonido: DESACTIVADO",
+    "プレイヤー":"Jugadores",
+    "全ゲームの捨て札（👑は親カード）":"Descartes de todas las partidas (👑 = carta principal)",
+    "ログ":"Registro",
+    "ジョーカーの数字とマークを申告":"Elige el valor y el palo del comodín",
+    "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"La carta principal o el comodín robado se tratará como la carta del valor y palo elegidos.",
+    "このカードとして申告":"Confirmar esta carta",
+    "スペード":"Picas",
+    "ハート":"Corazones",
+    "ダイヤ":"Diamantes",
+    "クラブ":"Tréboles",
+    "ルール":"Reglas",
+    "閉じる":"Cerrar",
+    "順位":"Posición",
+    "スコア":"Puntuación",
+    "記録日時":"Fecha del registro",
+    "未記録":"Sin registro",
+    "旧記録":"Registro anterior",
+    "あなた":"Tú",
+    "現在得点：":"Puntuación actual: ",
+    "確定：":"Asegurado: ",
+    "未確定：":"Pendiente: ",
+    "宣言：":"Decisión: ",
+    "このゲームは離脱済み":"Retirado de esta partida",
+    "ゲームは離脱済み":"Retirado de esta partida"
+  },
+  fr:{
+    "ドボンカードを避けながら、降りるタイミングを見極めるカードゲーム":"Évitez les cartes fatales et choisissez le bon moment pour vous retirer.",
+    "ゲーム設定":"Réglages","CPU人数":"Nombre de CPU","山札の数":"Nombre de paquets","ゲーム数":"Manches",
+    "得点倍率":"Multiplicateur","最高スコアランキング（10,000位まで保存）":"Classement des scores (10 000 meilleurs)",
+    "現在の設定":"Réglages actuels","この設定での1位スコア":"Meilleur score avec ces réglages",
+    "この設定では、まだランキング記録がありません。":"Aucun score enregistré pour ces réglages.",
+    "ゲーム":"Manche","山札":"Paquet","参加者":"Participants","CPU性格":"Style CPU","慎重":"Prudent","普通":"Normal","強気":"Audacieux",
+    "あなたの順位":"Votre rang","あなたの現在得点":"Votre score actuel","現在1位の得点":"Score du leader",
+    "親カード":"Carte de référence","今回のカード":"Carte tirée","山札の残り安全札":"Cartes sûres restantes",
+    "山札の残り危険札":"Cartes dangereuses restantes","ドボンの確率":"Risque de défaite","CPUの選択":"Choix des CPU",
+    "ゲーム開始":"Commencer","続ける":"Continuer","降りて得点確定":"Se retirer et valider",
+    "次のカードを引く":"Tirer la carte suivante","残りのカードを全部引く":"Tirer toutes les cartes restantes",
+    "次のゲームへ":"Manche suivante","最初からやり直す":"Recommencer","ルール説明":"Règles",
+    "ゲームのURLを共有":"Partager l’URL du jeu","効果音：ON":"Son : activé","効果音：OFF":"Son : désactivé",
+    "プレイヤー":"Joueurs","全ゲームの捨て札（👑は親カード）":"Défausse (👑 = carte de référence)","ログ":"Journal",
+    "ジョーカーの数字とマークを申告":"Déclarer la valeur et la couleur du Joker",
+    "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"Traitez le Joker de référence ou tiré comme la valeur et la couleur déclarées.",
+    "このカードとして申告":"Confirmer","スペード":"Pique","ハート":"Cœur","ダイヤ":"Carreau","クラブ":"Trèfle",
+    "ルール":"Règles","閉じる":"Fermer","順位":"Rang","スコア":"Score","記録日時":"Date",
+    "未記録":"Aucun record","旧記録":"Ancien record","あなた":"Vous","設定を変更すると、確認後に最初から開始します。山札を複数選んだ場合、1つの山札を使い切るたびにそのゲームを終了します。":"Toute modification redémarre la partie après confirmation. Avec plusieurs paquets, épuiser un paquet termine la manche.","現在得点：":"Score actuel : ","確定：":"Validé : ","未確定：":"En attente : ","宣言：":"Choix : ","このゲームは離脱済み":"Retiré de cette manche","ゲームは離脱済み":"Retiré de cette manche","人":" joueurs","枚":" cartes"
+  }
+};
+
+function localizeText(japanese){
+  if(currentLanguage==="ja" || !japanese) return japanese;
+  let text=String(japanese);
+
+  const patterns={
+    en:[
+      [/残る\s*(\d+)人\s*／\s*降りる\s*(\d+)人/g,"Stay $1 / Fold $2"],
+      [/(^|[^\d,])(\d+)位(?=$|[^ま])/g,"$1#$2"],
+      [/CPU\s*(\d+)人・山札(\d+)・(\d+)ゲーム・×([\d,]+)/g,"CPU $1 · Deck $2 · $3 games · ×$4"],
+      [/([\d,]+)点/g,"$1 pts"],[/(\d+)人/g,"$1 players"],[/(\d+)枚/g,"$1 cards"],
+      [/第(\d+)ゲーム/g,"Game $1"],[/以上がドボンカードです。/g," or higher is a bust card."],
+      [/以下がドボンカードです。/g," or lower is a bust card."]
+    ],
+    zh:[
+      [/残る\s*(\d+)人\s*／\s*降りる\s*(\d+)人/g,"继续 $1人 ／ 退出 $2人"],
+      [/CPU\s*(\d+)人・山札(\d+)・(\d+)ゲーム・×([\d,]+)/g,"CPU $1人・牌组 $2・$3局・×$4"],
+      [/(\d+)位/g,"第$1名"],[/([\d,]+)点/g,"$1分"],[/(\d+)枚/g,"$1张"],[/第(\d+)ゲーム/g,"第$1局"]
+    ],
+    ko:[
+      [/残る\s*(\d+)人\s*／\s*降りる\s*(\d+)人/g,"계속 $1명 ／ 포기 $2명"],
+      [/CPU\s*(\d+)人・山札(\d+)・(\d+)ゲーム・×([\d,]+)/g,"CPU $1명・덱 $2・$3게임・×$4"],
+      [/(\d+)位/g,"$1위"],[/([\d,]+)点/g,"$1점"],[/(\d+)枚/g,"$1장"],[/第(\d+)ゲーム/g,"제$1게임"]
+    ],
+
+    es:[
+      [/残る\s*(\d+)人\s*／\s*降りる\s*(\d+)人/g,"Continúan $1 / Se retiran $2"],
+      [/CPU\s*(\d+)人・山札(\d+)・(\d+)ゲーム・×([\d,]+)/g,"$1 CPU · Mazo $2 · $3 partidas · ×$4"],
+      [/(\d+)位/g,"Puesto $1"],
+      [/([\d,]+)点/g,"$1 pts"],
+      [/(\d+)人/g,"$1 jugadores"],
+      [/(\d+)枚/g,"$1 cartas"],
+      [/第(\d+)ゲーム/g,"Partida $1"],
+      [/全員が降りました。/g,"Todos se han retirado."],
+      [/設定を確認して「ゲーム開始」を押してください。/g,'Revisa los ajustes y pulsa «Iniciar partida».'],
+      [/まずカードを1枚引きます。/g,"Primero, roba una carta."],
+      [/続けるか、降りて得点を確定するか選んでください。/g,"Elige entre continuar o retirarte para asegurar tus puntos."],
+      [/選択が確定しました。「次のカードを引く」を押してください。/g,'Decisiones confirmadas. Pulsa «Robar la siguiente carta».'],
+      [/あなたは離脱済みです。CPUの探索を自動進行しています。/g,"Te has retirado. Las CPU continúan automáticamente."],
+      [/危険札が0枚のため、CPUが残りのカードをすべて引きます。/g,"No quedan cartas peligrosas, así que las CPU robarán todas las cartas restantes."],
+      [/ジョーカーです。数字とマークを申告してください。/g,"Has robado un comodín. Elige su valor y palo."],
+      [/親カードがジョーカーです。数字とマークを申告してください。/g,"La carta principal es un comodín. Elige su valor y palo."]
+    ],
+    fr:[
+      [/残る\s*(\d+)人\s*／\s*降りる\s*(\d+)人/g,"Restent $1 / Se retirent $2"],
+      [/CPU\s*(\d+)人・山札(\d+)・(\d+)ゲーム・×([\d,]+)/g,"$1 CPU · Paquet $2 · $3 manches · ×$4"],
+      [/(\d+)位/g,"$1e"],[/([\d,]+)点/g,"$1 pts"],[/(\d+)人/g,"$1 joueurs"],[/(\d+)枚/g,"$1 cartes"],
+      [/第(\d+)ゲーム/g,"Manche $1"]
+    ]
+  };
+  (patterns[currentLanguage] || []).forEach(([rx,repl])=>text=text.replace(rx,repl));
+
+  const dict=I18N[currentLanguage] || {};
+  Object.keys(dict).sort((a,b)=>b.length-a.length).forEach(key=>{
+    text=text.split(key).join(dict[key]);
+  });
+
+  return text;
+}
+
+function setMessage(japanese){
+  const el=document.getElementById("message");
+  if(!el) return;
+  el.dataset.japanese=japanese;
+  el.textContent=localizeText(japanese);
+}
+
+function appendMessage(japanese){
+  const el=document.getElementById("message");
+  if(!el) return;
+  const base=el.dataset.japanese || "";
+  setMessage(base+japanese);
+}
+
+const suits = [
+  {symbol:"♠", red:false},
+  {symbol:"♥", red:true},
+  {symbol:"♦", red:true},
+  {symbol:"♣", red:false}
+];
+
+const labels = {1:"A",11:"J",12:"Q",13:"K"};
+
+let deck = [];
+let discard = [];
+let parentCard = null;
+let lastDrawn = null;
+let gameNo = 1;
+let roundEnded = false;
+let wholeGameEnded = false;
+let pendingJoker = false;
+let parentJokerPending = false;
+let waitingForNextDraw = false;
+let bulkDrawing = false;
+let gameStarted = false;
+const SOUND_STORAGE_KEY="trumpTreasureSoundEnabledV1";
+let soundEnabled=localStorage.getItem(SOUND_STORAGE_KEY)!=="false";
+let scoreRecordedForCurrentSession = false;
+
+let cpuCount = 3;
+let scoreMultiplier = 1000;
+let maxGames = 5;
+let selectedDeckCount = 1;
+let decksRemaining = 1;
+let currentDeckNumber = 1;
+let players = [];
+
+function buildPlayers(){
+  players = [
+    {name:"あなた", total:0, pending:0, active:true, human:true, choice:null}
+  ];
+  for(let i=1; i<=cpuCount; i++){
+    players.push({
+      name:`CPU ${i}`,
+      total:0,
+      pending:0,
+      active:true,
+      human:false,
+      choice:null
+    });
+  }
+}
+
+buildPlayers();
+
+const $ = id => document.getElementById(id);
+const els = {
+  gameNo:$("gameNo"),
+  maxGamesDisplay:$("maxGamesDisplay"),
+  humanRankDisplay:$("humanRankDisplay"),
+  humanScoreDisplay:$("humanScoreDisplay"),
+  leaderScoreDisplay:$("leaderScoreDisplay"),
+  deckCount:$("deckCount"),
+  deckNoDisplay:$("deckNoDisplay"),
+  deckTotalDisplay:$("deckTotalDisplay"),
+  activeCount:$("activeCount"),
+  message:$("message"),
+  parentCard:$("parentCard"),
+  drawnCard:$("drawnCard"),
+  hazardInfo:$("hazardInfo"),
+  hazardCards:$("hazardCards"),
+  safeCount:$("safeCount"),
+  dangerCount:$("dangerCount"),
+  dangerRate:$("dangerRate"),
+  cpuStyle:$("cpuStyle"),
+  cpuChoiceSummary:$("cpuChoiceSummary"),
+  startGameBtn:$("startGameBtn"),
+  soundBtn:$("soundBtn"),
+  players:$("players"),
+  discard:$("discard"),
+  log:$("log"),
+  continueBtn:$("continueBtn"),
+  foldBtn:$("foldBtn"),
+  drawNextBtn:$("drawNextBtn"),
+  drawAllSafeBtn:$("drawAllSafeBtn"),
+  nextGameBtn:$("nextGameBtn"),
+  restartBtn:$("restartBtn"),
+  jokerDialog:$("jokerDialog"),
+  jokerRank:$("jokerRank"),
+  jokerSuit:$("jokerSuit"),
+  jokerConfirm:$("jokerConfirm"),
+  currentRecordSetting:$("currentRecordSetting"),
+  currentHighScore:$("currentHighScore"),
+  highScoreTableWrap:$("highScoreTableWrap")
+};
+
+function createDeck(){
+  const cards = [];
+  for(const s of suits){
+    for(let rank=1; rank<=13; rank++){
+      cards.push({rank, suit:s.symbol, red:s.red, joker:false});
+    }
+  }
+  cards.push({joker:true});
+  cards.push({joker:true});
+  return shuffle(cards);
+}
+
+function shuffle(a){
+  const copy=[...a];
+  for(let i=copy.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+  }
+  return copy;
+}
+
+function rankText(rank){ return labels[rank] || String(rank); }
+
+function cardHTML(card){
+  if(card.joker){
+    return `<div class="card joker">
+      <div class="rank">JOKER</div>
+      <div class="suit">★</div>
+      <div class="bottom">JOKER</div>
+    </div>`;
+  }
+  return `<div class="card ${card.red?"red":""}">
+    <div class="rank">${rankText(card.rank)}${card.suit}</div>
+    <div class="suit">${card.suit}</div>
+    <div class="bottom">${rankText(card.rank)}${card.suit}</div>
+  </div>`;
+}
+
+function miniHTML(card){
+  if(card.joker) return `<div class="mini joker">JOKER</div>`;
+  return `<div class="mini ${card.red?"red":""}">${rankText(card.rank)}${card.suit}</div>`;
+}
+
+function formatScore(v){
+  const locale=currentLanguage==="zh"?"zh-CN":currentLanguage==="ko"?"ko-KR":currentLanguage==="fr"?"fr-FR":currentLanguage==="en"?"en-US":"ja-JP";
+  return localizeText(`${Math.trunc(v).toLocaleString(locale)}点`);
+}
+function activePlayers(){ return players.filter(p=>p.active); }
+
+function addLog(text){
+  const p=document.createElement("p");
+  p.dataset.japanese=text;
+  p.textContent=localizeText(text);
+  els.log.prepend(p);
+}
+
+function hazardDescription(){
+  const dir = parentCard.rank <= 7 ? "以上" : "以下";
+  return localizeText(`${parentCard.suit}の${rankText(parentCard.rank)}${dir}がドボンカードです。`);
+}
+
+function isHazard(card){
+  if(card.suit !== parentCard.suit) return false;
+  if(parentCard.rank <= 7) return card.rank >= parentCard.rank;
+  return card.rank <= parentCard.rank;
+}
+
+
+function remainingStats(){
+  // 表示は、すでに引かれて捨て札になったカードを含めず、
+  // 現在の山札に残っているカードだけを基準に計算する。
+  let safe=0;
+  let danger=0;
+
+  deck.forEach(card=>{
+    // ジョーカーは申告後に安全札・ドボンカードのどちらにもなり得るため、
+    // 確率計算の分母には含めるが、確定枚数には含めない。
+    if(card.joker) return;
+    if(isHazard(card)) danger++;
+    else safe++;
+  });
+
+  const total=deck.length;
+  return {safe,danger,total,rate:total ? danger/total : 0};
+}
+
+function hazardList(){
+  // 理論上の全ドボンカードではなく、山札に現在残っている
+  // ドボンカードだけを一覧表示する。
+  return deck
+    .filter(card=>!card.joker && isHazard(card))
+    .sort((a,b)=>a.rank-b.rank);
+}
+
+function beep(freq=440,duration=.08,type='sine'){
+  if(!soundEnabled) return;
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(.08,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+duration);
+  }catch(e){}
+}
+
+function render(){
+  els.gameNo.textContent=gameNo;
+  els.maxGamesDisplay.textContent=maxGames;
+
+  const liveRanking=[...players].sort((a,b)=>{
+    const diff=(b.total+b.pending)-(a.total+a.pending);
+    if(diff!==0) return diff;
+    return a.name.localeCompare(b.name,"ja",{numeric:true});
+  });
+  const human=players.find(p=>p.human);
+  const humanScore=human ? human.total+human.pending : 0;
+  const leaderScore=liveRanking.length ? liveRanking[0].total+liveRanking[0].pending : 0;
+  const humanIndex=liveRanking.findIndex(p=>p.human);
+  let humanRank=humanIndex+1;
+  if(humanIndex>0){
+    const previousScore=liveRanking[humanIndex-1].total+liveRanking[humanIndex-1].pending;
+    if(previousScore===humanScore){
+      for(let i=0;i<humanIndex;i++){
+        const s=liveRanking[i].total+liveRanking[i].pending;
+        if(s===humanScore){
+          humanRank=i+1;
+          break;
+        }
+      }
+    }
+  }
+  els.humanRankDisplay.textContent=localizeText(`${humanRank}位`);
+  els.humanScoreDisplay.textContent=formatScore(humanScore);
+  els.leaderScoreDisplay.textContent=formatScore(leaderScore);
+
+  els.deckCount.textContent=localizeText(`${deck.length}枚`);
+  els.deckNoDisplay.textContent=Math.min(currentDeckNumber,selectedDeckCount);
+  els.deckTotalDisplay.textContent=selectedDeckCount;
+  els.activeCount.textContent=activePlayers().length;
+  els.parentCard.innerHTML=parentCard?cardHTML(parentCard):"";
+  els.hazardInfo.textContent=parentCard?hazardDescription():"";
+  els.hazardCards.innerHTML=parentCard?hazardList().map(c=>`<span class="hazard-chip">${rankText(c.rank)}${c.suit}</span>`).join(""):"";
+  const stats=parentCard?remainingStats():{safe:0,danger:0,total:0,rate:0};
+  els.safeCount.textContent=localizeText(`${stats.safe}枚`);
+  els.dangerCount.textContent=localizeText(`${stats.danger}枚`);
+  els.dangerRate.textContent=`${(stats.rate*100).toFixed(1)}%`;
+  els.discard.innerHTML=discard.map(miniHTML).join("");
+
+  const rankedPlayers = [...players].sort((a,b)=>{
+    const scoreDiff = (b.total + b.pending) - (a.total + a.pending);
+    if(scoreDiff !== 0) return scoreDiff;
+    return a.name.localeCompare(b.name, "ja", {numeric:true});
+  });
+
+  let previousScore = null;
+  let previousRank = 0;
+
+  els.players.innerHTML=rankedPlayers.map((p,index)=>{
+    const currentScore = p.total + p.pending;
+    const rank = currentScore === previousScore ? previousRank : index + 1;
+    previousScore = currentScore;
+    previousRank = rank;
+
+    return `
+    <div class="player ${p.active?"":"inactive"}">
+      <div class="name">${rank}位　${p.name}</div>
+      <div class="score">${localizeText("現在得点：")}${formatScore(currentScore)}</div>
+      <div class="sub">
+        ${localizeText("確定：")}${formatScore(p.total)} ／
+        ${p.active
+          ? `${localizeText("未確定：")}${formatScore(p.pending)}${p.choice?` ／ ${localizeText("宣言：")}${localizeText(p.choice==="continue"?"続ける":"降りる")}`:""}`
+          : `${localizeText("未確定：")}0 ／ ${localizeText("このゲームは離脱済み")}`}
+      </div>
+    </div>
+  `;
+  }).join("");
+  els.players.innerHTML=localizeText(els.players.innerHTML);
+
+  // 「降りる」は、このゲーム中に降りたCPUの累計人数を表示する。
+  // まだ選択確定前でも、現在「降りる」を選んでいるCPUは累計側に含める。
+  // そのため「残る人数＋降りる人数」は常に設定したCPU人数と一致する。
+  const foldedCpuCount=players.filter(
+    p=>!p.human && (!p.active || p.choice==="fold")
+  ).length;
+  const remainingCpuCount=Math.max(0,cpuCount-foldedCpuCount);
+
+  if(els.cpuChoiceSummary){
+    els.cpuChoiceSummary.textContent=
+      localizeText(`残る ${remainingCpuCount}人 ／ 降りる ${foldedCpuCount}人`);
+  }
+
+  const decisionHuman=players[0];
+  const decisionDisabled =
+    !gameStarted || roundEnded || wholeGameEnded || !decisionHuman.active || pendingJoker || waitingForNextDraw || bulkDrawing;
+
+  els.startGameBtn.hidden=gameStarted;
+  els.continueBtn.hidden=!gameStarted;
+  els.foldBtn.hidden=!gameStarted;
+  els.continueBtn.disabled=decisionDisabled;
+  els.foldBtn.disabled=decisionDisabled;
+
+  const noDangerLeft =
+    parentCard && deck.length>0 && remainingStats().danger===0;
+
+  els.drawNextBtn.hidden =
+    !gameStarted || !waitingForNextDraw || roundEnded || wholeGameEnded || bulkDrawing;
+
+  els.drawAllSafeBtn.hidden =
+    !gameStarted ||
+    !waitingForNextDraw ||
+    roundEnded ||
+    wholeGameEnded ||
+    bulkDrawing ||
+    !noDangerLeft;
+
+  els.nextGameBtn.hidden=!gameStarted || !roundEnded || wholeGameEnded;
+}
+
+function resetDrawnCard(){
+  els.drawnCard.className="card-back";
+  els.drawnCard.innerHTML="?";
+}
+
+function startRound(){
+  gameStarted=true;
+
+  // 選択した山札を1つずつ使用する。
+  // ゲーム途中でドボンや全員降りになった場合、残っている同じ山札を次のゲームでも使う。
+  // 1つの山札を使い切った場合は、その時点で1ゲームを終了し、
+  // 次のゲーム開始時に次の山札を用意する。
+  if(deck.length===0){
+    if(decksRemaining<=0){
+      endWholeGame(true);
+      return;
+    }
+    currentDeckNumber=selectedDeckCount-decksRemaining+1;
+    deck=createDeck();
+    decksRemaining--;
+    addLog(`山札${currentDeckNumber}/${selectedDeckCount}を開始しました。`);
+  }
+
+  roundEnded=false;
+  pendingJoker=false;
+  parentJokerPending=false;
+  waitingForNextDraw=false;
+  bulkDrawing=false;
+  bulkDrawResume=null;
+  lastDrawn=null;
+
+  players.forEach(p=>{
+    p.pending=0;
+    p.active=true;
+    p.choice=null;
+  });
+
+  // 親カードは通常札・ジョーカーを含む山札全体から引く。
+  parentCard=deck.pop();
+
+  // 親カードがジョーカーの場合は、数字とマークの申告後に開始する。
+  if(parentCard.joker){
+    parentJokerPending=true;
+    pendingJoker=true;
+    discard.push({...parentCard, isParent:true});
+    resetDrawnCard();
+    els.parentCard.innerHTML=cardHTML(parentCard);
+    setMessage("親カードがジョーカーです。数字とマークを申告してください。");
+    addLog(`第${gameNo}ゲーム開始。親カードにジョーカーが出ました。`);
+    render();
+
+    if(!els.jokerDialog.open) els.jokerDialog.showModal();
+    return;
+  }
+
+  discard.push({...parentCard, isParent:true});
+  resetDrawnCard();
+  setMessage("まずカードを1枚引きます。");
+  addLog(`第${gameNo}ゲーム開始。親カードは${rankText(parentCard.rank)}${parentCard.suit}。`);
+  render();
+
+  if(deck.length===0){
+    handleDeckExhausted("親カードを引いた時点で山札を使い切りました。");
+    return;
+  }
+
+  setTimeout(drawCard, 350);
+}
+
+function handleDeckExhausted(detail="山札のカードをすべて使い切りました。"){
+  if(roundEnded || wholeGameEnded) return;
+
+  activePlayers().forEach(p=>{
+    p.total+=p.pending;
+    if(p.pending>0){
+      addLog(`${p.name}の未確定得点${formatScore(p.pending)}を、山札終了により確定。`);
+    }
+    p.pending=0;
+    p.active=false;
+    p.choice=null;
+  });
+
+  showNoCardsLeftAnimation();
+
+  const noMoreDecks=decksRemaining<=0;
+  const reason=`No Cards Left! 山札${currentDeckNumber}/${selectedDeckCount}を使い切りました。${detail}`;
+  endRound(reason,noMoreDecks);
+}
+
+function distributeSafeCard(card){
+  const active=activePlayers();
+  if(active.length===0){
+    endRound("全員が降りました。");
+    return;
+  }
+
+  const points=Math.floor((card.rank*scoreMultiplier)/active.length);
+  active.forEach(p=>p.pending+=points);
+  beep(760,.10,"sine");
+  addLog(`${rankText(card.rank)}${card.suit}は安全。参加者${active.length}人に${formatScore(points)}ずつ加算。`);
+  waitingForNextDraw=false;
+
+  // 最後の安全札を引いた場合は、その時点で1ゲーム終了。
+  if(deck.length===0){
+    handleDeckExhausted("最後の安全札まで引き切りました。");
+    return;
+  }
+
+  prepareCpuChoices();
+
+  if(players[0].active){
+    setMessage("あなたの判断を選んでください。");
+    render();
+  } else {
+    setMessage("あなたは離脱済みです。CPUの探索を自動進行しています。");
+    render();
+    continueCpuOnlyTurn();
+  }
+}
+
+function drawCard(){
+  if(roundEnded) return;
+
+  if(deck.length===0){
+    handleDeckExhausted();
+    return;
+  }
+
+  const card=deck.pop();
+
+  // 通常札の重複はデッキ破損を示すため、同一カードなら安全に除外して引き直す。
+  if(
+    !card.joker &&
+    parentCard &&
+    card.rank===parentCard.rank &&
+    card.suit===parentCard.suit
+  ){
+    addLog(`重複カード${rankText(card.rank)}${card.suit}を検出したため除外しました。`);
+    setTimeout(drawCard,0);
+    return;
+  }
+
+  lastDrawn=card;
+  els.drawnCard.className="draw-flash";
+  els.drawnCard.innerHTML=cardHTML(card);
+  beep(520,.08,"triangle");
+  discard.push(card);
+  render();
+
+  if(card.joker){
+    pendingJoker=true;
+    setMessage("ジョーカーです。数字とマークを申告してください。");
+    render();
+    els.jokerDialog.showModal();
+    return;
+  }
+
+  resolveDrawnCard(card);
+}
+
+function resolveDrawnCard(card){
+  if(isHazard(card)){
+    showDobonAnimation();
+    els.drawnCard.classList.add("hazard-flash");
+    beep(140,.35,"sawtooth");
+    addLog(`${rankText(card.rank)}${card.suit}はドボンカード。探索中の全員が未確定ポイントを失いました。`);
+    activePlayers().forEach(p=>p.pending=0);
+    if(deck.length===0){
+      showNoCardsLeftAnimation();
+      endRound(
+        `ドボンカードが出ました。No Cards Left! 山札${currentDeckNumber}/${selectedDeckCount}を使い切りました。`,
+        decksRemaining<=0
+      );
+    }else{
+      endRound("ドボンカードが出ました。");
+    }
+    return;
+  }
+
+  distributeSafeCard(card);
+}
+
+function cpuChoice(player){
+  const activeCount=activePlayers().length;
+  const dangerCards=deck.filter(c=>{
+    if(c.joker) return false;
+    return isHazard(c);
+  }).length;
+
+  // 山札の危険札が0枚なら、まだ降りていないCPUは必ず続ける。
+  if(deck.length>0 && dangerCards===0) return "continue";
+
+  const risk=deck.length?dangerCards/deck.length:1;
+  const greed=Math.min(.35, player.pending/30000);
+  const gamePressure=gameNo>=9 ? .08 : 0;
+  const style=els.cpuStyle.value;
+  const styleAdjust = style==="cautious" ? .18 : style==="bold" ? -.16 : 0;
+  const foldChance=Math.max(.04, risk*1.4 + greed + gamePressure - .18 + styleAdjust);
+
+  return Math.random()<foldChance ? "fold" : "continue";
+}
+
+function continueCpuOnlyTurn(){
+  if(roundEnded || wholeGameEnded || pendingJoker || players[0].active) return;
+
+  const active = activePlayers();
+  if(active.length === 0){
+    endRound("全員が降りました。");
+    return;
+  }
+
+  if(deck.length>0 && remainingStats().danger===0){
+    setMessage("危険札が0枚のため、CPUが残りのカードをすべて引きます。");
+    render();
+    setTimeout(drawAllRemainingSafeCards,500);
+    return;
+  }
+
+  setMessage("あなたは離脱済みです。CPUの探索を自動進行しています。");
+  render();
+
+  setTimeout(() => {
+    if(roundEnded || wholeGameEnded || players[0].active) return;
+
+    activePlayers().forEach(p => {
+      if(!p.human && !p.choice) p.choice = cpuChoice(p);
+    });
+
+    resolveChoices();
+  }, 700);
+}
+
+
+function prepareCpuChoices(){
+  if(roundEnded || wholeGameEnded || pendingJoker) return;
+
+  players
+    .filter(p => p.active && !p.human)
+    .forEach(p => {
+      p.choice = cpuChoice(p);
+    });
+}
+
+function humanChoice(choice){
+  if(roundEnded || wholeGameEnded || !players[0].active || pendingJoker || waitingForNextDraw) return;
+
+  players[0].choice=choice;
+
+  players
+    .filter(p => p.active && !p.human && !p.choice)
+    .forEach(p => {
+      p.choice = cpuChoice(p);
+    });
+
+  resolveChoices();
+}
+
+function resolveChoices(){
+  const folders=activePlayers().filter(p=>p.choice==="fold");
+  folders.forEach(p=>{
+    p.total+=p.pending;
+    addLog(`${p.name}が降り、${formatScore(p.pending)}を確定。`);
+    p.pending=0;
+    p.active=false;
+  });
+
+  activePlayers().forEach(p=>p.choice=null);
+
+  if(activePlayers().length===0){
+    endRound("全員が降りました。");
+    return;
+  }
+
+  if(!players[0].active){
+    waitingForNextDraw=false;
+    setMessage("CPUが探索を続けます。");
+    render();
+
+    setTimeout(()=>{
+      if(roundEnded || wholeGameEnded) return;
+      resetDrawnCard();
+      render();
+      setTimeout(drawCard,300);
+    },700);
+  } else {
+    waitingForNextDraw=true;
+    setMessage("選択が確定しました。「次のカードを引く」を押してください。");
+    render();
+  }
+}
+
+
+let bulkDrawResume=null;
+
+function drawAllRemainingSafeCards(){
+  if(
+    bulkDrawing ||
+    roundEnded ||
+    wholeGameEnded ||
+    pendingJoker ||
+    deck.length===0 ||
+    remainingStats().danger!==0
+  ) return;
+
+  bulkDrawing=true;
+  waitingForNextDraw=false;
+  setMessage("危険札が0枚のため、探索中のプレイヤーが残りのカードをすべて引きます。");
+  addLog("山札の危険札が0枚になったため、残りのカードを一括で引きます。");
+  render();
+
+  const drawOne=()=>{
+    if(roundEnded || wholeGameEnded){
+      bulkDrawing=false;
+      bulkDrawResume=null;
+      render();
+      return;
+    }
+
+    if(deck.length===0){
+      bulkDrawing=false;
+      bulkDrawResume=null;
+      handleDeckExhausted("残りのカードをすべて引き切りました。");
+      return;
+    }
+
+    const card=deck.pop();
+
+    if(
+      !card.joker &&
+      parentCard &&
+      card.rank===parentCard.rank &&
+      card.suit===parentCard.suit
+    ){
+      addLog(`重複カード${rankText(card.rank)}${card.suit}を検出したため除外しました。`);
+      setTimeout(drawOne,0);
+      return;
+    }
+
+    lastDrawn=card;
+    els.drawnCard.className="draw-flash";
+    els.drawnCard.innerHTML=cardHTML(card);
+    discard.push(card);
+
+    if(card.joker){
+      pendingJoker=true;
+      bulkDrawResume=drawOne;
+      setMessage("ジョーカーです。あなたが降りていても、スートと数字を指定してください。");
+      addLog("一括処理中にジョーカーが出ました。プレイヤーの申告を待っています。");
+      render();
+      if(!els.jokerDialog.open) els.jokerDialog.showModal();
+      return;
+    }
+
+    const active=activePlayers();
+    const points=active.length
+      ? Math.floor((card.rank*scoreMultiplier)/active.length)
+      : 0;
+    active.forEach(p=>p.pending+=points);
+
+    addLog(`${rankText(card.rank)}${card.suit}を引き、参加者${active.length}人に${formatScore(points)}ずつ加算。`);
+    beep(700,.05,"triangle");
+    render();
+
+    setTimeout(drawOne,180);
+  };
+
+  drawOne();
+}
+
+function endRound(reason, forceWholeGame=false){
+  waitingForNextDraw=false;
+  roundEnded=true;
+  setMessage(reason);
+  addLog(`第${gameNo}ゲーム終了。${reason}`);
+  render();
+
+  const isFieldOut=reason.includes("全員が降りました");
+  const isDobon=reason.includes("ドボンカード");
+  const isNoCardsLeft=reason.includes("No Cards Left!");
+
+  if(isFieldOut){
+    showFieldOutAnimation();
+  }
+
+  // 山札を使い切って全体終了となる場合は、
+  // No Cards Left! の演出が完全に終わってから Game Set! を表示する。
+  if(forceWholeGame || gameNo>=maxGames){
+    const gameSetDelay=isNoCardsLeft
+      ? 2400
+      : (isFieldOut || isDobon)
+        ? 2300
+        : 0;
+    endWholeGame(forceWholeGame,gameSetDelay);
+  }
+}
+
+function endWholeGame(deckExhausted=false,gameSetDelay=0){
+  wholeGameEnded=true;
+  els.nextGameBtn.hidden=true;
+  const ranking=[...players].sort((a,b)=>b.total-a.total);
+  const winner=ranking[0];
+  const endLabel=deckExhausted
+    ? `全カード使用・第${gameNo}ゲームで終了`
+    : `${maxGames}ゲーム終了`;
+  setMessage(`${endLabel}。1位は${winner.name}、${formatScore(winner.total)}です。`);
+  addLog(`最終結果：1位 ${winner.name}（${formatScore(winner.total)}）`);
+
+  const human=players.find(p=>p.human);
+  const humanFinalScore=human ? human.total : 0;
+  const rankingResult=recordHumanHighScore(humanFinalScore);
+  if(rankingResult.enteredTop10000000){
+    addLog(`ランキング入り！ この設定で${rankingResult.rank}位に入りました（${formatScore(humanFinalScore)}）。`);
+    appendMessage(` あなたはこの設定の記録で${rankingResult.rank}位です！`);
+  }
+
+  render();
+
+  // 全てのゲームが終了した時にだけ Game Set! を表示する。
+  setTimeout(showGameSetAnimation,gameSetDelay);
+
+  if(winner.human){
+    setTimeout(()=>{
+      launchCelebration();
+      try{
+        const ctx=new (window.AudioContext||window.webkitAudioContext)();
+        [523,659,784,1046].forEach((f,i)=>{
+          const o=ctx.createOscillator(),g=ctx.createGain();
+          o.frequency.value=f;o.type="triangle";
+          g.gain.value=.08;
+          o.connect(g);g.connect(ctx.destination);
+          o.start(ctx.currentTime+i*.12);
+          o.stop(ctx.currentTime+i*.12+.25);
+        });
+      }catch(e){}
+    },gameSetDelay+1750);
+  }
+}
+
+function nextRound(){
+  if(!roundEnded || wholeGameEnded) return;
+
+  if(gameNo>=maxGames){
+    endWholeGame(false);
+    return;
+  }
+
+  if(deck.length===0 && decksRemaining<=0){
+    endWholeGame(true);
+    return;
+  }
+
+  gameNo++;
+  startRound();
+}
+
+function recordInterruptedGameScore(reason="途中終了"){
+  if(!gameStarted || wholeGameEnded || scoreRecordedForCurrentSession) return null;
+
+  const human=players.find(p=>p.human);
+  if(!human) return null;
+
+  const currentScore=human.total+human.pending;
+  const result=recordHumanHighScore(currentScore);
+  addLog(`${reason}時点の得点${formatScore(currentScore)}をランキングに記録しました。`);
+  return result;
+}
+
+function resetToStartScreen(){
+  gameNo=1;
+  wholeGameEnded=false;
+  roundEnded=false;
+  pendingJoker=false;
+  parentJokerPending=false;
+  waitingForNextDraw=false;
+  bulkDrawing=false;
+  bulkDrawResume=null;
+  gameStarted=false;
+  scoreRecordedForCurrentSession=false;
+  decksRemaining=selectedDeckCount;
+  currentDeckNumber=1;
+  deck=[];
+  discard=[];
+  parentCard=null;
+  lastDrawn=null;
+
+  buildPlayers();
+  els.log.innerHTML="";
+  els.parentCard.className="card-back";
+  els.parentCard.innerHTML="?";
+  resetDrawnCard();
+  setMessage("設定を確認して「ゲーム開始」を押してください。");
+  render();
+}
+
+function restartAll(){
+  recordInterruptedGameScore("ゲーム中断");
+  resetToStartScreen();
+}
+
+
+const HIGH_SCORE_STORAGE_KEY="trumpTreasureHighScoresV1";
+
+function highScoreKey(cpu=cpuCount,decks=selectedDeckCount,games=maxGames,multiplier=scoreMultiplier){
+  return `${cpu}|${decks}|${games}|${multiplier}`;
+}
+
+function loadHighScores(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(HIGH_SCORE_STORAGE_KEY) || "{}");
+    return parsed && typeof parsed==="object" ? parsed : {};
+  }catch(error){
+    return {};
+  }
+}
+
+function saveHighScores(records){
+  try{
+    localStorage.setItem(HIGH_SCORE_STORAGE_KEY,JSON.stringify(records));
+  }catch(error){
+    addLog("最高スコアを端末に保存できませんでした。");
+  }
+}
+
+function normalizeRankingEntry(entry){
+  if(typeof entry==="number"){
+    return {score:Number(entry),recordedAt:""};
+  }
+  if(entry && typeof entry==="object"){
+    return {
+      score:Number(entry.score),
+      recordedAt:String(entry.recordedAt || "")
+    };
+  }
+  return null;
+}
+
+function getRankingForSetting(records,key){
+  const stored=records[key];
+
+  // 旧仕様の単独最高スコアも自動でランキングへ移行する。
+  if(stored && !Array.isArray(stored) && Number.isFinite(Number(stored.score))){
+    return [{
+      score:Number(stored.score),
+      recordedAt:String(stored.recordedAt || "")
+    }];
+  }
+
+  if(!Array.isArray(stored)) return [];
+
+  return stored
+    .map(normalizeRankingEntry)
+    .filter(entry=>entry && Number.isFinite(entry.score))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,10000);
+}
+
+function recordHumanHighScore(score){
+  scoreRecordedForCurrentSession = true;
+  const records=loadHighScores();
+  const key=highScoreKey();
+  const ranking=getRankingForSetting(records,key);
+
+  const newEntry={
+    score:Number(score),
+    recordedAt:new Date().toISOString()
+  };
+
+  ranking.push(newEntry);
+  ranking.sort((a,b)=>b.score-a.score);
+
+  const newRank=ranking.indexOf(newEntry)+1;
+  const enteredTop10000000=newRank>=1 && newRank<=10000;
+
+  records[key]=ranking.slice(0,10000);
+  saveHighScores(records);
+  renderHighScoreBoard(enteredTop10000000 ? key : "",enteredTop10000000 ? newRank : null);
+
+  return {
+    enteredTop10000000,
+    rank:enteredTop10000000 ? newRank : null
+  };
+}
+
+function localizedHighScoreTitle(){
+  if(currentLanguage==="en") return "High-score ranking (top 10,000 saved)";
+  if(currentLanguage==="zh") return "最高分排行榜（保存前10,000名）";
+  if(currentLanguage==="ko") return "최고 점수 랭킹 (10,000위까지 저장)";
+  if(currentLanguage==="fr") return "Classement des scores (10 000 meilleurs)";
+  if(currentLanguage==="es") return "Clasificación de puntuaciones (se guardan las 10.000 mejores)";
+  return "最高スコアランキング（10,000位まで保存）";
+}
+
+function localizedBestScoreLabel(){
+  if(currentLanguage==="en") return "Best score for these settings";
+  if(currentLanguage==="zh") return "此设置下最高分";
+  if(currentLanguage==="ko") return "이 설정의 최고 점수";
+  if(currentLanguage==="fr") return "Meilleur score avec ces réglages";
+  if(currentLanguage==="es") return "Mejor puntuación con estos ajustes";
+  return "この設定での1位スコア";
+}
+
+function localizedPlayersBadge(){
+  if(currentLanguage==="en") return "Players";
+  if(currentLanguage==="zh") return "参与者";
+  if(currentLanguage==="ko") return "참가자";
+  if(currentLanguage==="fr") return "Participants";
+  if(currentLanguage==="es") return "Jugadores";
+  return "参加者";
+}
+
+function localizedRecordSetting(){
+  const multiplier=scoreMultiplier.toLocaleString(
+    currentLanguage==="en" ? "en-US" :
+    currentLanguage==="zh" ? "zh-CN" :
+    currentLanguage==="ko" ? "ko-KR" :
+    currentLanguage==="fr" ? "fr-FR" : currentLanguage==="es" ? "es-ES" : "ja-JP"
+  );
+
+  if(currentLanguage==="en"){
+    return `CPU ${cpuCount} players · Deck ${selectedDeckCount} · ${maxGames} games · ×${multiplier}`;
+  }
+  if(currentLanguage==="zh"){
+    return `CPU ${cpuCount}人・牌组 ${selectedDeckCount}・${maxGames}局・×${multiplier}`;
+  }
+  if(currentLanguage==="ko"){
+    return `CPU ${cpuCount}명・덱 ${selectedDeckCount}・${maxGames}게임・×${multiplier}`;
+  }
+  if(currentLanguage==="fr"){
+    return `${cpuCount} CPU · Paquet ${selectedDeckCount} · ${maxGames} manches · ×${multiplier}`;
+  }
+  if(currentLanguage==="es"){
+    return `${cpuCount} CPU · Mazo ${selectedDeckCount} · ${maxGames} partidas · ×${multiplier}`;
+  }
+  return `CPU ${cpuCount}人・山札${selectedDeckCount}・${maxGames}ゲーム・×${multiplier}`;
+}
+
+function renderHighScoreBoard(highlightKey="",highlightRank=null){
+  if(!els.currentRecordSetting || !els.currentHighScore || !els.highScoreTableWrap) return;
+
+  const highScoreTitle=document.getElementById("highScoreTitle");
+  if(highScoreTitle) highScoreTitle.textContent=localizedHighScoreTitle();
+
+  const bestScoreLabel=document.getElementById("bestScoreLabel");
+  if(bestScoreLabel) bestScoreLabel.textContent=localizedBestScoreLabel();
+
+  const records=loadHighScores();
+  const currentKey=highScoreKey();
+  const currentRanking=getRankingForSetting(records,currentKey);
+
+  els.currentRecordSetting.textContent=localizedRecordSetting();
+  els.currentHighScore.textContent=currentRanking.length
+    ? `${currentRanking[0].score.toLocaleString("ja-JP")}点`
+    : localizeText("未記録");
+
+  if(currentRanking.length===0){
+    els.highScoreTableWrap.innerHTML=
+      `<div class="high-score-empty">${localizeText("この設定では、まだランキング記録がありません。")}</div>`;
+    return;
+  }
+
+  els.highScoreTableWrap.innerHTML=`
+    <table class="high-score-table">
+      <thead>
+        <tr>
+          <th>${localizeText("順位")}</th>
+          <th>${localizeText("スコア")}</th>
+          <th>${localizeText("記録日時")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${currentRanking.map((entry,index)=>`
+          <tr class="${highlightKey===currentKey && highlightRank===index+1 ? "high-score-new" : ""}">
+            <td>${localizeText(`${index+1}位`)}</td>
+            <td>${localizeText(`${entry.score.toLocaleString("ja-JP")}点`)}</td>
+            <td>${entry.recordedAt
+              ? new Date(entry.recordedAt).toLocaleString("ja-JP")
+              : localizeText("旧記録")}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function updateSettingButtons(){
+  document.querySelectorAll("[data-cpu-count]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.cpuCount) === cpuCount);
+  });
+  document.querySelectorAll("[data-score-multiplier]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.scoreMultiplier) === scoreMultiplier);
+  });
+  document.querySelectorAll("[data-game-count]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.gameCount) === maxGames);
+  });
+  document.querySelectorAll("[data-deck-count]").forEach(btn=>{
+    btn.classList.toggle("selected", Number(btn.dataset.deckCount) === selectedDeckCount);
+  });
+  renderHighScoreBoard();
+}
+
+function changeGameSetting(type, value){
+  const label =
+    type === "cpu"
+      ? `CPU人数を${value}人`
+      : type === "score"
+        ? `得点倍率を×${value}`
+        : type === "deck"
+          ? `山札の数を${value}つ`
+          : `ゲーム数を${value}ゲーム`;
+  const ok = confirm(`${label}に変更し、ゲームを最初から始めますか？`);
+  if(!ok){
+    updateSettingButtons();
+    return;
+  }
+
+  recordInterruptedGameScore("設定変更による中断");
+
+  if(type === "cpu"){
+    cpuCount = value;
+  }else if(type === "score"){
+    scoreMultiplier = value;
+  }else if(type === "deck"){
+    selectedDeckCount = value;
+  }else{
+    maxGames = value;
+  }
+  updateSettingButtons();
+  restartAll();
+}
+
+els.startGameBtn.addEventListener("click",()=>{
+  if(gameStarted) return;
+  startRound();
+});
+
+els.continueBtn.addEventListener("click",()=>humanChoice("continue"));
+els.foldBtn.addEventListener("click",()=>humanChoice("fold"));
+els.drawNextBtn.addEventListener("click",()=>{
+  if(!waitingForNextDraw || roundEnded || wholeGameEnded) return;
+  waitingForNextDraw=false;
+  resetDrawnCard();
+  setMessage("次のカードを引きます。");
+  render();
+  setTimeout(drawCard,250);
+});
+
+els.drawAllSafeBtn.addEventListener("click",drawAllRemainingSafeCards);
+els.nextGameBtn.addEventListener("click",nextRound);
+els.restartBtn.addEventListener("click",restartAll);
+
+document.querySelectorAll("[data-cpu-count]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.cpuCount);
+    if(value===cpuCount) return;
+    changeGameSetting("cpu",value);
+  });
+});
+
+document.querySelectorAll("[data-score-multiplier]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.scoreMultiplier);
+    if(value===scoreMultiplier) return;
+    changeGameSetting("score",value);
+  });
+});
+
+document.querySelectorAll("[data-deck-count]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.deckCount);
+    if(value===selectedDeckCount) return;
+    changeGameSetting("deck",value);
+  });
+});
+
+document.querySelectorAll("[data-game-count]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const value=Number(btn.dataset.gameCount);
+    if(value===maxGames) return;
+    changeGameSetting("game",value);
+  });
+});
+
+updateSettingButtons();
+
+
+els.jokerConfirm.addEventListener("click",()=>{
+  const rank=Number(els.jokerRank.value);
+  const suit=els.jokerSuit.value;
+  const suitInfo=suits.find(s=>s.symbol===suit);
+  const declared={rank,suit,red:suitInfo.red,joker:false,declaredFromJoker:true};
+
+  pendingJoker=false;
+  els.jokerDialog.close();
+  discard[discard.length-1]=declared;
+  lastDrawn=declared;
+  els.drawnCard.innerHTML=cardHTML(declared);
+  addLog(`あなたはジョーカーを${rankText(rank)}${suit}として申告。`);
+
+  // 親カードとして出たジョーカーの申告処理
+  if(parentJokerPending){
+    parentJokerPending=false;
+    parentCard={...declared, isParent:true};
+    discard[discard.length-1]={...declared, isParent:true};
+    els.parentCard.innerHTML=cardHTML(parentCard);
+    addLog(`親カードのジョーカーを${rankText(rank)}${suit}として確定。`);
+    setMessage("親カードが確定しました。まずカードを1枚引きます。");
+    render();
+
+    if(deck.length===0){
+      handleDeckExhausted("親カードを引いた時点で山札を使い切りました。");
+      return;
+    }
+
+    setTimeout(drawCard,350);
+    return;
+  }
+
+  if(bulkDrawing){
+    // 一括処理中のジョーカーは得点札ではなく、逆転を狙うカードとして扱う。
+    // 宣言したカードがドボン条件を満たせば、探索中のCPUをドボンにする。
+    if(isHazard(declared)){
+      bulkDrawing=false;
+      bulkDrawResume=null;
+      showDobonAnimation();
+      els.drawnCard.classList.add("hazard-flash");
+      beep(140,.35,"sawtooth");
+      addLog(`${rankText(declared.rank)}${declared.suit}として申告したジョーカーはドボンカード。探索中の全員が未確定ポイントを失いました。`);
+      activePlayers().forEach(p=>p.pending=0);
+      if(deck.length===0){
+        showNoCardsLeftAnimation();
+        endRound(
+          `ジョーカーによってドボンカードが出ました。No Cards Left! 山札${currentDeckNumber}/${selectedDeckCount}を使い切りました。`,
+          decksRemaining<=0
+        );
+      }else{
+        endRound("ジョーカーによってドボンカードが出ました。");
+      }
+      return;
+    }
+
+    // 安全な申告だった場合は、探索中のCPUだけに得点を加算する。
+    const activeCpu=activePlayers().filter(p=>!p.human);
+    const points=activeCpu.length
+      ? Math.floor((declared.rank*scoreMultiplier)/activeCpu.length)
+      : 0;
+
+    activeCpu.forEach(cpu=>cpu.pending+=points);
+
+    addLog(
+      `ジョーカーを${rankText(declared.rank)}${declared.suit}として申告。` +
+      `探索中のCPU${activeCpu.length}人に${formatScore(points)}ずつ加算。`
+    );
+    beep(700,.05,"triangle");
+    render();
+
+    const resume=bulkDrawResume;
+    bulkDrawResume=null;
+    if(resume) setTimeout(resume,180);
+    return;
+  }
+
+  resolveDrawnCard(declared);
+});
+
+
+function updateSoundButton(){
+  const japanese=`効果音：${soundEnabled?"ON":"OFF"}`;
+  els.soundBtn.dataset.japanese=japanese;
+  els.soundBtn.textContent=localizeText(japanese);
+}
+
+els.soundBtn.addEventListener("click",()=>{
+  soundEnabled=!soundEnabled;
+  localStorage.setItem(SOUND_STORAGE_KEY,String(soundEnabled));
+  updateSoundButton();
+  if(soundEnabled) beep(660,.08,"sine");
+});
+
+document.getElementById("rulesBtn").addEventListener("click",()=>{
+  const dialog=document.getElementById("rulesDialog");
+  const gameCountText=document.getElementById("rulesGameCount");
+  const multiplierText=document.getElementById("rulesScoreMultiplier");
+  if(gameCountText) gameCountText.textContent=maxGames.toLocaleString("ja-JP");
+  if(multiplierText) multiplierText.textContent=scoreMultiplier.toLocaleString("ja-JP");
+  if(dialog && !dialog.open) dialog.showModal();
+});
+
+// ルールダイアログはscriptより後に置かれているため、イベント委譲で確実に閉じる。
+document.addEventListener("click",(event)=>{
+  if(event.target.closest("#closeRulesBtn")){
+    const dialog=document.getElementById("rulesDialog");
+    if(dialog && dialog.open) dialog.close();
+    return;
+  }
+
+  const dialog=document.getElementById("rulesDialog");
+  if(dialog && dialog.open && event.target===dialog){
+    dialog.close();
+  }
+});
+
+
+function buildShareHtml(){
+  const clone = document.documentElement.cloneNode(true);
+
+  const shareDialog = clone.querySelector("#shareDialog");
+  if(shareDialog) shareDialog.removeAttribute("open");
+
+  const rulesDialog = clone.querySelector("#rulesDialog");
+  if(rulesDialog) rulesDialog.removeAttribute("open");
+
+  const textarea = clone.querySelector("#shareHtml");
+  if(textarea) textarea.textContent = "";
+
+  const status = clone.querySelector("#shareStatus");
+  if(status) status.textContent = "";
+
+  const title = clone.querySelector("title");
+  if(title) title.textContent = "Trump Treasure";
+
+  const heading = clone.querySelector("h1");
+  if(heading) heading.textContent = "Trump Treasure";
+
+  return "<!DOCTYPE html>\n" + clone.outerHTML;
+}
+
+async function copyShareHtml(){
+  const html = buildShareHtml();
+  const textarea = document.getElementById("shareHtml");
+  const status = document.getElementById("shareStatus");
+
+  textarea.value = html;
+
+  try {
+    await navigator.clipboard.writeText(html);
+    status.textContent = "HTMLをコピーしました。貼り付け先へそのまま貼り付けられます。";
+  } catch (error) {
+    textarea.focus();
+    textarea.select();
+
+    try {
+      const copied = document.execCommand("copy");
+      status.textContent = copied
+        ? "HTMLをコピーしました。"
+        : "自動コピーできませんでした。下のHTMLを長押ししてコピーしてください。";
+    } catch {
+      status.textContent = "自動コピーできませんでした。下のHTMLを長押ししてコピーしてください。";
+    }
+  }
+}
+
+document.getElementById("shareBtn").addEventListener("click", async ()=>{
+  const shareUrl=window.location.href;
+
+  try{
+    if(navigator.share){
+      await navigator.share({
+        title:"Trump Treasure",
+        text:"Trump Treasureをプレイ",
+        url:shareUrl
+      });
+    }else if(navigator.clipboard){
+      await navigator.clipboard.writeText(shareUrl);
+      setMessage("ゲームのURLをコピーしました。");
+    }else{
+      window.prompt("このURLをコピーしてください。",shareUrl);
+    }
+  }catch(error){
+    if(error && error.name!=="AbortError"){
+      setMessage("URLを共有できませんでした。");
+    }
+  }
+});
+
+document.getElementById("copyHtmlBtn").addEventListener("click", copyShareHtml);
+
+document.getElementById("closeShareBtn").addEventListener("click", ()=>{
+  document.getElementById("shareDialog").close();
+});
+
+window.addEventListener("beforeunload",()=>{
+  recordInterruptedGameScore("ページ終了");
+});
+
+window.addEventListener("pagehide",()=>{
+  recordInterruptedGameScore("ページ終了");
+});
+
+resetToStartScreen();
+
+
+
+
+
+function showNoCardsLeftAnimation(){
+  const overlay=document.getElementById("noCardsLeftOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+
+  try{
+    const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const now=audioCtx.currentTime;
+    [110,165,220,330].forEach((frequency,index)=>{
+      const oscillator=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      oscillator.type=index%2===0 ? "sawtooth" : "triangle";
+      oscillator.frequency.setValueAtTime(frequency,now+index*.08);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        frequency*1.65,
+        now+index*.08+.38
+      );
+      gain.gain.setValueAtTime(.08,now+index*.08);
+      gain.gain.exponentialRampToValueAtTime(.001,now+index*.08+.44);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start(now+index*.08);
+      oscillator.stop(now+index*.08+.46);
+    });
+  }catch(error){}
+
+  setTimeout(()=>overlay.classList.remove("show"),2300);
+}
+
+function showFieldOutAnimation(){
+  const overlay=document.getElementById("fieldOutOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+
+  try{
+    const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const now=audioCtx.currentTime;
+    [180,240,320].forEach((frequency,index)=>{
+      const oscillator=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      oscillator.type=index===2 ? "triangle" : "square";
+      oscillator.frequency.setValueAtTime(frequency,now+index*.08);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        frequency*1.45,
+        now+index*.08+.28
+      );
+      gain.gain.setValueAtTime(.07,now+index*.08);
+      gain.gain.exponentialRampToValueAtTime(.001,now+index*.08+.34);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start(now+index*.08);
+      oscillator.stop(now+index*.08+.36);
+    });
+  }catch(error){}
+
+  setTimeout(()=>overlay.classList.remove("show"),2200);
+}
+
+function showGameSetAnimation(){
+  const overlay=document.getElementById("gameSetOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+  setTimeout(()=>overlay.classList.remove("show"),1700);
+}
+
+function showDobonAnimation(){
+  const overlay=document.getElementById("dobonOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const now=ctx.currentTime;
+    [150,105,72].forEach((frequency,index)=>{
+      const oscillator=ctx.createOscillator();
+      const gain=ctx.createGain();
+      oscillator.type="sawtooth";
+      oscillator.frequency.setValueAtTime(frequency,now+index*.09);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        Math.max(35,frequency*.45),
+        now+index*.09+.42
+      );
+      gain.gain.setValueAtTime(.13,now+index*.09);
+      gain.gain.exponentialRampToValueAtTime(.001,now+index*.09+.46);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(now+index*.09);
+      oscillator.stop(now+index*.09+.48);
+    });
+  }catch(error){}
+
+  setTimeout(()=>overlay.classList.remove("show"),2100);
+}
+
+function launchCelebration(){
+  const ov=document.getElementById("winnerOverlay");
+  ov.classList.add("show");
+
+  const c=document.getElementById("fireworksCanvas");
+  const ctx=c.getContext("2d");
+  c.width=innerWidth;c.height=innerHeight;
+  let parts=[];
+  function boom(){
+    const x=Math.random()*c.width,y=Math.random()*c.height*0.6;
+    for(let i=0;i<80;i++){
+      const a=Math.random()*Math.PI*2,s=Math.random()*5+2;
+      parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:60});
+    }
+  }
+  boom();setTimeout(boom,600);setTimeout(boom,1200);
+  let f=0;
+  (function anim(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.03;p.life--;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,2,0,6.28);
+      ctx.fillStyle=`hsl(${p.life*6},100%,60%)`;
+      ctx.fill();
+    });
+    parts=parts.filter(p=>p.life>0);
+    if(f++<180) requestAnimationFrame(anim);
+  })();
+
+  const conf=document.getElementById("confettiContainer");
+  conf.innerHTML="";
+  const chars=["🎊","🎉"];
+  for(let i=0;i<120;i++){
+    const s=document.createElement("span");
+    s.textContent=chars[Math.floor(Math.random()*chars.length)];
+    s.style.left=Math.random()*100+"%";
+    s.style.animationDelay=(Math.random()*1.5)+"s";
+    conf.appendChild(s);
+  }
+  setTimeout(()=>{
+    ov.classList.remove("show");
+    conf.innerHTML="";
+    ctx.clearRect(0,0,c.width,c.height);
+  },5000);
+}
+
+</script>
+
+<dialog id="rulesDialog">
+  <div class="dialog-body">
+    <h3>ルール説明</h3>
+    <ul style="line-height:1.7">
+      <li>全<span id="rulesGameCount">5</span>ゲーム行います。</li>
+      <li>最初に親カードを1枚引きます。</li>
+      <li>親カードが7以下なら「同じマークで親カード以上」がドボンカードです。</li>
+      <li>親カードが8以上なら「同じマークで親カード以下」がドボンカードです。</li>
+      <li>安全なカードなら「カードの数字×<span id="rulesScoreMultiplier">1000</span>」を参加者全員で均等に分け、未確定ポイントになります。</li>
+      <li>各ターンで「続ける」か「降りる」を選びます。</li>
+      <li>降りると未確定ポイントが確定得点になります。</li>
+      <li>ドボンカードが出ると探索中のプレイヤーは未確定ポイントを失います。</li>
+      <li><strong>Field Out!</strong>：探索中の全員が降りると、そのゲームは終了します。降りたプレイヤーの未確定ポイントは確定得点になります。</li>
+      <li>ドボンカードが出ると、そのゲームは終了します。</li>
+      <li>ジョーカーは好きな数字・マークとして申告できます。</li>
+      <li>画面には残りの安全札・危険札・ドボンの確率が表示されます。</li>
+      <li>山札の危険札が0枚になると、降りていないCPUは必ず続け、「残りのカードを全部引く」ボタンで安全な残り札を一括して引けます</li>
+      <li>CPU性格は「慎重・普通・強気」から選べます。</li>
+    </ul>
+    <button id="closeRulesBtn" class="confirm">閉じる</button>
+  </div>
+</dialog>
+
+
+<dialog id="shareDialog">
+  <div class="dialog-body">
+    <h3>Trump Treasureを共有</h3>
+    <p>
+      下のHTMLをコピーして、HTMLを公開できるサービスやファイルへ貼り付けてください。
+      貼り付け先のブラウザタブには「Trump Treasure」と表示されます。
+    </p>
+    <div id="shareStatus" class="share-status"></div>
+    <textarea id="shareHtml" class="share-textarea" readonly></textarea>
+    <div class="share-actions">
+      <button id="copyHtmlBtn" class="confirm">HTMLをコピー</button>
+      <button id="closeShareBtn" class="restart">閉じる</button>
+    </div>
+  </div>
+</dialog>
+
+
+
+<div id="fieldOutOverlay" aria-live="assertive"><div id="fieldOutText">Field Out!</div></div>
+<div id="noCardsLeftOverlay" aria-live="assertive"><div id="noCardsLeftText">No Cards Left!</div></div>
+<div id="gameSetOverlay" aria-live="polite"><div id="gameSetText">Game Set!</div></div>
+<div id="dobonOverlay" aria-live="assertive">
+  <div id="dobonText">DoBooooN!!</div>
+</div>
+
+<div id="winnerOverlay">
+<canvas id="fireworksCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+<div id="confettiContainer" style="position:absolute;inset:0;overflow:hidden;pointer-events:none"></div>
+<h1>Congratulations!!</h1>
+</div>
+
+<script>
+const staticTextNodes=[];
+function collectStaticTextNodes(){
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  let node;
+  while((node=walker.nextNode())){
+    const parent=node.parentElement;
+    if(!parent || parent.closest("script,style,#fieldOutOverlay,#noCardsLeftOverlay,#gameSetOverlay,#dobonOverlay,#winnerOverlay")) continue;
+    const value=node.nodeValue;
+    if(value && value.trim()){
+      staticTextNodes.push({node,japanese:value});
+    }
+  }
+}
+
+function applyLanguage(language){
+  currentLanguage=["ja","en","zh","ko","fr","es"].includes(language)?language:"ja";
+  localStorage.setItem(LANGUAGE_STORAGE_KEY,currentLanguage);
+  document.documentElement.lang=currentLanguage==="zh"?"zh-CN":currentLanguage;
+
+  const select=document.getElementById("languageSelect");
+  if(select) select.value=currentLanguage;
+
+  staticTextNodes.forEach(item=>{
+    if(item.node.isConnected){
+      item.node.nodeValue=localizeText(item.japanese);
+    }
+  });
+
+  document.querySelectorAll("#log p[data-japanese]").forEach(p=>{
+    p.textContent=localizeText(p.dataset.japanese);
+  });
+
+  const message=document.getElementById("message");
+  if(message?.dataset.japanese){
+    message.textContent=localizeText(message.dataset.japanese);
+  }
+
+  updateSoundButton();
+
+  const highScoreTitle=document.getElementById("highScoreTitle");
+  if(highScoreTitle) highScoreTitle.textContent=localizedHighScoreTitle();
+
+  const bestScoreLabel=document.getElementById("bestScoreLabel");
+  if(bestScoreLabel) bestScoreLabel.textContent=localizedBestScoreLabel();
+
+  const playersBadgeLabel=document.getElementById("playersBadgeLabel");
+  if(playersBadgeLabel) playersBadgeLabel.textContent=localizedPlayersBadge();
+
+  const playersBadgeUnit=document.getElementById("playersBadgeUnit");
+  if(playersBadgeUnit){
+    playersBadgeUnit.textContent=
+      currentLanguage==="en" ? " players" :
+      currentLanguage==="ko" ? "명" :
+      currentLanguage==="fr" ? " joueurs" :
+      currentLanguage==="es" ? " jugadores" :
+      "人";
+  }
+
+  render();
+  renderHighScoreBoard();
+}
+
+collectStaticTextNodes();
+document.getElementById("languageSelect").addEventListener("change",event=>{
+  applyLanguage(event.target.value);
+});
+applyLanguage(currentLanguage);
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+      console.error("Service Worker registration failed:", error);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
