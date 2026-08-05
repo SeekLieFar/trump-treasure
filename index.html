@@ -739,6 +739,38 @@ to{transform:scale(1.15)}}
   unicode-bidi: isolate;
 }
 
+
+.share-score-dialog {
+  width: min(92vw, 460px);
+}
+.share-score-preview {
+  white-space: pre-wrap;
+  background: #0f1727;
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 12px 0 16px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.share-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+.share-score-grid button {
+  width: 100%;
+}
+.share-x { background:#111; color:#fff; }
+.share-line { background:#06c755; color:#fff; }
+.share-reddit { background:#ff4500; color:#fff; }
+.share-system { background:#65aef2; color:#102033; }
+.share-copy { background:#f0f3f6; color:#1d2735; }
+@media (max-width:520px){
+  .share-score-grid { grid-template-columns:1fr; }
+}
+
 </style>
 </head>
 <body>
@@ -904,7 +936,7 @@ to{transform:scale(1.15)}}
       <button id="nextGameBtn" class="next-game" hidden>次のゲームへ</button>
       <button id="restartBtn" class="restart">始めからやり直す</button>
       <button id="rulesBtn" class="restart">ルール説明</button>
-      <button id="shareBtn" class="restart">ゲームのURLを共有</button>
+      <button id="shareBtn" class="restart">スコアを共有</button>
       <button id="soundBtn" class="sound-btn">効果音：ON</button>
     </section>
 
@@ -971,7 +1003,7 @@ const I18N={
     "ゲーム開始":"Start game","続ける":"Continue","降りて得点を獲得する":"Fold and bank score",
     "次のカードを引く":"Draw next card","残りのカードを全部引く":"Draw all remaining cards",
     "次のゲームへ":"Next game","始めからやり直す":"Restart","ルール説明":"Rules",
-    "ゲームのURLを共有":"Share game URL","効果音：ON":"Sound: ON","効果音：OFF":"Sound: OFF",
+    "スコアを共有":"Share game URL","効果音：ON":"Sound: ON","効果音：OFF":"Sound: OFF",
     "プレイヤー":"Players","全ゲームの捨て札（👑は親カード）":"Discard pile (👑 = parent card)","ログ":"Log",
     "ジョーカーの数字とマークを申告":"Declare Joker rank and suit",
     "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"Treat the parent or drawn Joker as the declared rank and suit.",
@@ -992,7 +1024,7 @@ const I18N={
     "ゲーム開始":"开始游戏","続ける":"继续","降りて得点を獲得する":"退出并确认得分",
     "次のカードを引く":"抽下一张牌","残りのカードを全部引く":"抽完剩余所有牌",
     "次のゲームへ":"下一局","始めからやり直す":"重新开始","ルール説明":"规则说明",
-    "ゲームのURLを共有":"分享游戏链接","効果音：ON":"音效：开","効果音：OFF":"音效：关",
+    "スコアを共有":"分享游戏链接","効果音：ON":"音效：开","効果音：OFF":"音效：关",
     "プレイヤー":"玩家","全ゲームの捨て札（👑は親カード）":"所有局弃牌（👑为主牌）","ログ":"记录",
     "ジョーカーの数字とマークを申告":"指定Joker的点数和花色",
     "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"主牌或抽到的Joker按指定点数和花色处理。",
@@ -1013,7 +1045,7 @@ const I18N={
     "ゲーム開始":"게임 시작","続ける":"계속","降りて得点を獲得する":"포기하고 점수 확정",
     "次のカードを引く":"다음 카드 뽑기","残りのカードを全部引く":"남은 카드 모두 뽑기",
     "次のゲームへ":"다음 게임","始めからやり直す":"처음부터 다시","ルール説明":"규칙 설명",
-    "ゲームのURLを共有":"게임 URL 공유","効果音：ON":"효과음: 켬","効果音：OFF":"효과음: 끔",
+    "スコアを共有":"게임 URL 공유","効果音：ON":"효과음: 켬","効果音：OFF":"효과음: 끔",
     "プレイヤー":"플레이어","全ゲームの捨て札（👑は親カード）":"전체 버린 카드 (👑 = 기준 카드)","ログ":"로그",
     "ジョーカーの数字とマークを申告":"조커 숫자와 무늬 지정",
     "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"기준 카드 또는 뽑은 조커를 지정한 숫자와 무늬로 처리합니다.",
@@ -1058,7 +1090,7 @@ const I18N={
     "次のゲームへ":"Siguiente partida",
     "始めからやり直す":"Reiniciar",
     "ルール説明":"Reglas",
-    "ゲームのURLを共有":"Compartir URL del juego",
+    "スコアを共有":"Compartir URL del juego",
     "効果音：ON":"Sonido: ACTIVADO",
     "効果音：OFF":"Sonido: DESACTIVADO",
     "プレイヤー":"Jugadores",
@@ -1099,7 +1131,7 @@ const I18N={
     "ゲーム開始":"Commencer","続ける":"Continuer","降りて得点を獲得する":"Se retirer et valider",
     "次のカードを引く":"Tirer la carte suivante","残りのカードを全部引く":"Tirer toutes les cartes restantes",
     "次のゲームへ":"Manche suivante","始めからやり直す":"Recommencer","ルール説明":"Règles",
-    "ゲームのURLを共有":"Partager l’URL du jeu","効果音：ON":"Son : activé","効果音：OFF":"Son : désactivé",
+    "スコアを共有":"Partager l’URL du jeu","効果音：ON":"Son : activé","効果音：OFF":"Son : désactivé",
     "プレイヤー":"Joueurs","全ゲームの捨て札（👑は親カード）":"Défausse (👑 = carte de référence)","ログ":"Journal",
     "ジョーカーの数字とマークを申告":"Déclarer la valeur et la couleur du Joker",
     "親カードまたは今回のカードを、申告した数字とマークのカードとして扱います。":"Traitez le Joker de référence ou tiré comme la valeur et la couleur déclarées.",
@@ -1908,23 +1940,64 @@ function endRound(reason, forceWholeGame=false){
   }
 }
 
+function buildFinalResultMessage(deckExhausted,winner,recordRank){
+  const winnerName=winner.human
+    ? localizeText("あなた")
+    : winner.name;
+  const winnerScore=formatScore(winner.total);
+
+  if(currentLanguage==="en"){
+    const ending=deckExhausted
+      ? `All cards used — ended in Game ${gameNo}`
+      : `${maxGames} games completed`;
+    return `${ending}. Winner: ${winnerName} with ${winnerScore}. You are #${recordRank} in the records for these settings!`;
+  }
+  if(currentLanguage==="zh"){
+    const ending=deckExhausted
+      ? `所有牌已用完，第${gameNo}局结束`
+      : `${maxGames}局结束`;
+    return `${ending}。第1名是${winnerName}，得分${winnerScore}。你在此设置的记录中排名第${recordRank}名！`;
+  }
+  if(currentLanguage==="ko"){
+    const ending=deckExhausted
+      ? `모든 카드를 사용하여 제${gameNo}게임에서 종료`
+      : `${maxGames}게임 종료`;
+    return `${ending}. 1위는 ${winnerName}, ${winnerScore}입니다. 이 설정 기록에서 당신은 ${recordRank}위입니다!`;
+  }
+  if(currentLanguage==="fr"){
+    const ending=deckExhausted
+      ? `Toutes les cartes ont été utilisées — fin à la manche ${gameNo}`
+      : `${maxGames} manches terminées`;
+    return `${ending}. Gagnant : ${winnerName} avec ${winnerScore}. Vous êtes classé ${recordRank}e pour ces réglages !`;
+  }
+  if(currentLanguage==="es"){
+    const ending=deckExhausted
+      ? `Se usaron todas las cartas — final en la partida ${gameNo}`
+      : `${maxGames} partidas completadas`;
+    return `${ending}. Ganador: ${winnerName} con ${winnerScore}. Ocupas el puesto ${recordRank} con estos ajustes.`;
+  }
+
+  const ending=deckExhausted
+    ? `全カード使用・第${gameNo}ゲームで終了`
+    : `${maxGames}ゲーム終了`;
+  return `${ending}。1位は${winnerName}、${winnerScore}です。あなたはこの設定の記録で${recordRank}位です！`;
+}
+
 function endWholeGame(deckExhausted=false,gameSetDelay=0){
   wholeGameEnded=true;
   els.nextGameBtn.hidden=true;
   const ranking=[...players].sort((a,b)=>b.total-a.total);
   const winner=ranking[0];
-  const endLabel=deckExhausted
-    ? `全カード使用・第${gameNo}ゲームで終了`
-    : `${maxGames}ゲーム終了`;
-  setMessage(`${endLabel}。1位は${winner.name}、${formatScore(winner.total)}です。`);
-  addLog(`最終結果：1位 ${winner.name}（${formatScore(winner.total)}）`);
-
   const human=players.find(p=>p.human);
   const humanFinalScore=human ? human.total : 0;
   const rankingResult=recordHumanHighScore(humanFinalScore);
+  const recordRank=rankingResult.rank || 1;
+
+  setMessage(buildFinalResultMessage(deckExhausted,winner,recordRank));
+  addLog(`最終結果：1位 ${winner.name}（${formatScore(winner.total)}）`);
+
   if(rankingResult.enteredTop10000000){
     addLog(`ランキング入り！ この設定で${rankingResult.rank}位に入りました（${formatScore(humanFinalScore)}）。`);
-    appendMessage(` あなたはこの設定の記録で${rankingResult.rank}位です！`);
   }
 
   render();
@@ -2013,6 +2086,81 @@ function restartAll(){
 
 
 const HIGH_SCORE_STORAGE_KEY="trumpTreasureHighScoresV1";
+const LATEST_SCORE_STORAGE_KEY="trumpTreasureLatestScoreV1";
+
+function saveLatestScore(score,rank=null){
+  const latest={
+    score:Number(score),
+    rank:Number.isFinite(Number(rank)) ? Number(rank) : null,
+    cpuCount,
+    deckCount:selectedDeckCount,
+    gameCount:maxGames,
+    multiplier:scoreMultiplier,
+    recordedAt:new Date().toISOString()
+  };
+
+  try{
+    localStorage.setItem(LATEST_SCORE_STORAGE_KEY,JSON.stringify(latest));
+  }catch(error){}
+}
+
+function loadLatestScore(){
+  try{
+    const latest=JSON.parse(localStorage.getItem(LATEST_SCORE_STORAGE_KEY) || "null");
+    if(!latest || !Number.isFinite(Number(latest.score))) return null;
+    return latest;
+  }catch(error){
+    return null;
+  }
+}
+
+function latestScoreShareText(latest){
+  if(!latest){
+    if(currentLanguage==="en") return "Play Trump Treasure!";
+    if(currentLanguage==="zh") return "来玩 Trump Treasure！";
+    if(currentLanguage==="ko") return "Trump Treasure를 플레이해 보세요!";
+    if(currentLanguage==="fr") return "Jouez à Trump Treasure !";
+    if(currentLanguage==="es") return "¡Juega a Trump Treasure!";
+    return "Trump Treasureをプレイ！";
+  }
+
+  const scoreText=formatRankingScore(latest.score);
+  const rankTextValue=latest.rank ? latest.rank : null;
+
+  if(currentLanguage==="en"){
+    return rankTextValue
+      ? `My latest Trump Treasure score: ${scoreText} (#${rankTextValue}). Can you beat it?`
+      : `My latest Trump Treasure score: ${scoreText}. Can you beat it?`;
+  }
+
+  if(currentLanguage==="zh"){
+    return rankTextValue
+      ? `我在 Trump Treasure 的最新得分是 ${scoreText}（第${rankTextValue}名）。你能超过吗？`
+      : `我在 Trump Treasure 的最新得分是 ${scoreText}。你能超过吗？`;
+  }
+
+  if(currentLanguage==="ko"){
+    return rankTextValue
+      ? `Trump Treasure 최신 점수: ${scoreText} (${rankTextValue}위). 이 기록을 넘을 수 있나요?`
+      : `Trump Treasure 최신 점수: ${scoreText}. 이 기록을 넘을 수 있나요?`;
+  }
+
+  if(currentLanguage==="fr"){
+    return rankTextValue
+      ? `Mon dernier score à Trump Treasure : ${scoreText} (${rankTextValue}e). Pouvez-vous le battre ?`
+      : `Mon dernier score à Trump Treasure : ${scoreText}. Pouvez-vous le battre ?`;
+  }
+
+  if(currentLanguage==="es"){
+    return rankTextValue
+      ? `Mi puntuación más reciente en Trump Treasure: ${scoreText} (puesto ${rankTextValue}). ¿Puedes superarla?`
+      : `Mi puntuación más reciente en Trump Treasure: ${scoreText}. ¿Puedes superarla?`;
+  }
+
+  return rankTextValue
+    ? `Trump Treasureで最新${scoreText}を獲得しました（${rankTextValue}位）。この記録を超えられますか？`
+    : `Trump Treasureで最新${scoreText}を獲得しました。この記録を超えられますか？`;
+}
 
 function highScoreKey(cpu=cpuCount,decks=selectedDeckCount,games=maxGames,multiplier=scoreMultiplier){
   return `${cpu}|${decks}|${games}|${multiplier}`;
@@ -2084,6 +2232,8 @@ function recordHumanHighScore(score){
 
   const newRank=ranking.indexOf(newEntry)+1;
   const enteredTop10000000=newRank>=1 && newRank<=10000;
+
+  saveLatestScore(score,enteredTop10000000 ? newRank : null);
 
   records[key]=ranking.slice(0,10000);
   saveHighScores(records);
@@ -2487,27 +2637,141 @@ async function copyShareHtml(){
   }
 }
 
-document.getElementById("shareBtn").addEventListener("click", async ()=>{
-  const shareUrl=window.location.href;
+let currentSharePayload={text:"",url:""};
 
+function buildCurrentSharePayload(){
+  const shareUrl=window.location.href;
+  const latest=loadLatestScore();
+  const shareText=latestScoreShareText(latest);
+  return {
+    text:shareText,
+    url:shareUrl,
+    combined:`${shareText}
+${shareUrl}`
+  };
+}
+
+function openSocialShare(url){
+  window.open(url,"_blank","noopener,noreferrer");
+}
+
+function updateShareDialogLanguage(){
+  const title=document.getElementById("scoreShareTitle");
+  const systemBtn=document.getElementById("shareSystemBtn");
+  const copyBtn=document.getElementById("copyScoreBtn");
+  const closeBtn=document.getElementById("closeScoreShareBtn");
+
+  if(currentLanguage==="en"){
+    title.textContent="Share score";
+    systemBtn.textContent="Other apps";
+    copyBtn.textContent="Copy text and URL";
+    closeBtn.textContent="Close";
+  }else if(currentLanguage==="zh"){
+    title.textContent="分享分数";
+    systemBtn.textContent="其他应用";
+    copyBtn.textContent="复制文字和网址";
+    closeBtn.textContent="关闭";
+  }else if(currentLanguage==="ko"){
+    title.textContent="점수 공유";
+    systemBtn.textContent="다른 앱";
+    copyBtn.textContent="문구와 URL 복사";
+    closeBtn.textContent="닫기";
+  }else if(currentLanguage==="fr"){
+    title.textContent="Partager le score";
+    systemBtn.textContent="Autres applications";
+    copyBtn.textContent="Copier le texte et l’URL";
+    closeBtn.textContent="Fermer";
+  }else if(currentLanguage==="es"){
+    title.textContent="Compartir puntuación";
+    systemBtn.textContent="Otras aplicaciones";
+    copyBtn.textContent="Copiar texto y URL";
+    closeBtn.textContent="Cerrar";
+  }else{
+    title.textContent="スコアを共有";
+    systemBtn.textContent="その他のアプリ";
+    copyBtn.textContent="文章とURLをコピー";
+    closeBtn.textContent="閉じる";
+  }
+}
+
+document.getElementById("shareBtn").addEventListener("click",()=>{
+  currentSharePayload=buildCurrentSharePayload();
+  document.getElementById("scoreSharePreview").textContent=currentSharePayload.combined;
+  updateShareDialogLanguage();
+
+  const dialog=document.getElementById("scoreShareDialog");
+  if(dialog && !dialog.open) dialog.showModal();
+});
+
+document.getElementById("shareXBtn").addEventListener("click",()=>{
+  const url="https://twitter.com/intent/tweet?text="
+    + encodeURIComponent(currentSharePayload.text)
+    + "&url=" + encodeURIComponent(currentSharePayload.url);
+  openSocialShare(url);
+});
+
+document.getElementById("shareLineBtn").addEventListener("click",()=>{
+  const url="https://social-plugins.line.me/lineit/share?url="
+    + encodeURIComponent(currentSharePayload.url)
+    + "&text=" + encodeURIComponent(currentSharePayload.text);
+  openSocialShare(url);
+});
+
+document.getElementById("shareRedditBtn").addEventListener("click",()=>{
+  const url="https://www.reddit.com/submit?url="
+    + encodeURIComponent(currentSharePayload.url)
+    + "&title=" + encodeURIComponent(currentSharePayload.text);
+  openSocialShare(url);
+});
+
+document.getElementById("shareSystemBtn").addEventListener("click",async()=>{
   try{
     if(navigator.share){
       await navigator.share({
         title:"Trump Treasure",
-        text:"Trump Treasureをプレイ",
-        url:shareUrl
+        text:currentSharePayload.text,
+        url:currentSharePayload.url
       });
-    }else if(navigator.clipboard){
-      await navigator.clipboard.writeText(shareUrl);
-      setMessage("ゲームのURLをコピーしました。");
     }else{
-      window.prompt("このURLをコピーしてください。",shareUrl);
+      await navigator.clipboard.writeText(currentSharePayload.combined);
+      setMessage(
+        currentLanguage==="en" ? "The score and URL were copied." :
+        currentLanguage==="zh" ? "已复制分数和网址。" :
+        currentLanguage==="ko" ? "점수와 URL을 복사했습니다." :
+        currentLanguage==="fr" ? "Le score et l’URL ont été copiés." :
+        currentLanguage==="es" ? "Se copiaron la puntuación y la URL." :
+        "スコアとURLをコピーしました。"
+      );
     }
   }catch(error){
     if(error && error.name!=="AbortError"){
-      setMessage("URLを共有できませんでした。");
+      setMessage("共有できませんでした。");
     }
   }
+});
+
+document.getElementById("copyScoreBtn").addEventListener("click",async()=>{
+  try{
+    await navigator.clipboard.writeText(currentSharePayload.combined);
+    setMessage(
+      currentLanguage==="en" ? "The score and URL were copied." :
+      currentLanguage==="zh" ? "已复制分数和网址。" :
+      currentLanguage==="ko" ? "점수와 URL을 복사했습니다." :
+      currentLanguage==="fr" ? "Le score et l’URL ont été copiés." :
+      currentLanguage==="es" ? "Se copiaron la puntuación y la URL." :
+      "スコアとURLをコピーしました。"
+    );
+  }catch(error){
+    window.prompt(
+      currentLanguage==="ja" ? "この文章をコピーしてください。" : "Copy this text.",
+      currentSharePayload.combined
+    );
+  }
+});
+
+document.getElementById("closeScoreShareBtn").addEventListener("click",()=>{
+  const dialog=document.getElementById("scoreShareDialog");
+  if(dialog && dialog.open) dialog.close();
 });
 
 document.getElementById("copyHtmlBtn").addEventListener("click", copyShareHtml);
@@ -2722,6 +2986,22 @@ function launchCelebration(){
 </dialog>
 
 
+
+
+<dialog id="scoreShareDialog" class="share-score-dialog">
+  <div class="dialog-body">
+    <h3 id="scoreShareTitle">スコアを共有</h3>
+    <div id="scoreSharePreview" class="share-score-preview"></div>
+    <div class="share-score-grid">
+      <button id="shareXBtn" class="share-x">X</button>
+      <button id="shareLineBtn" class="share-line">LINE</button>
+      <button id="shareRedditBtn" class="share-reddit">Reddit</button>
+      <button id="shareSystemBtn" class="share-system">その他のアプリ</button>
+      <button id="copyScoreBtn" class="share-copy">文章とURLをコピー</button>
+      <button id="closeScoreShareBtn" class="restart">閉じる</button>
+    </div>
+  </div>
+</dialog>
 
 <div id="fieldOutOverlay" class="notranslate" translate="no" aria-live="assertive"><div id="fieldOutText" class="notranslate" translate="no">Field Out!</div></div>
 <div id="noCardsLeftOverlay" class="notranslate" translate="no" aria-live="assertive"><div id="noCardsLeftText" class="notranslate" translate="no">No Cards Left!</div></div>
